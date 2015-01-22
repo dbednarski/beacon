@@ -1,0 +1,139 @@
+pccd2000gen.f
+
+General Solution for the Stokes parameters
+
+Sections:
+
+1. half-waveplate + calcite
+2. quarter-waveplate + calcite
+
+-----------------------------------------------------------------
+
+1. Half-waveplate + Calcite:
+
+Equation of condition:
+
+	a(i)*q + b(i)*u = z(i)
+
+    where
+    	a(i)   = cos(4*psi(i))
+	b(i)   = sin(4*psi(i))
+	z(i)   = (ane(i) - ano(i)*ak)/(ane(i) + ano(i)*ak)
+	ak     = sum ane(i) / sum ano(i) or 1
+	         (use of normalization is an user option)
+        ane(i) = counts in extraordinary beam in i-wavelength pos.
+	ano(i) = counts in ordinary beam in i-wavelength pos.
+
+Normal equations:
+
+	if f = sum ( a(i)*q + b(i)*u - z(i) )**2
+
+	df/dq = 0 ==> as*q + hs*u = sum z(i)*a(i)
+
+	df/du = 0 ==> hs*q + bs*u = sum z(i)*b(i)
+
+    where
+    	as = sum a(i)*a(i) = sum cos(4*psi(i))**2
+	bs = sum b(i)*b(i) = sum sin(4*psi(i))**2
+	hs = sum a(i)*b(i) = sum cos(4*psi(i)) * sin(4*psi(i))
+
+Solution:
+
+        q = sum { z(i) * [ a(i)*bs - b(i)*hs ] / det }
+        u = sum { z(i) * [ b(i)*as - a(i)*hs ] / det }
+
+	sigma  = sqrt [ f / (n-2) ]
+	sigmaq = sigma / sqrt(wq)
+	sigmau = sigma / sqrt(wu)
+
+    where
+    	det = as*bs - hs**2
+	wq  = det / as
+	wu  = det / bs
+
+Linear Polarization:
+
+	p      = sqrt( q**2 + u**2)
+	theta  = (1/2) atan (u/q)
+	sigma  = sigmaq
+
+2. Quarter-waveplate + Calcite:
+
+Equation of condition:
+
+	a(i)*q + b(i)*u + c(i)*v = z(i)
+
+    where
+	a(i) = cos(2psi(i)+2*zerolam)*cos(2psi(i)+2*zerolam)
+	b(i) = sin(2psi(i)+2*zerolam)*cos(2psi(i)+2*zerolam)
+	c(i) = -1.*sin(2psi(i)+2*zerolam)
+	z(i) = (ane(i) - ano(i))/(ane(i) + ano(i))
+        ane(i) = counts in extraordinary beam in i-wavelength pos.
+	ano(i) = counts in ordinary beam in i-wavelength pos.
+
+Normal equations:
+
+	if f = sum ( a(i)*q + b(i)*u + c(i)*v - z(i) )**2
+
+	df/dq = 0 ==>	as*q + hs*u + gs*v = sum z(i)*a(i)
+
+	df/du = 0 ==>	hs*q + bs*u + fs*v = sum z(i)*b(i)
+
+	df/dv = 0 ==>	gs*q + fs*u + cs*v = sum z(i)*c(i)
+
+    where
+	as = sum a(i)*a(i)
+	bs = sum b(i)*b(i)
+	cs = sum c(i)*c(i)
+	fs = sum b(i)*c(i)
+	gs = sum a(i)*c(i)
+	hs = sum a(i)*b(i)
+
+Solution:
+
+	q = sum { z(i) * [ a(i)*aa + b(i)*hh + c(i)*gg ] / det }
+	u = sum { z(i) * [ a(i)*hh + b(i)*bb + c(i)*ff ] / det }
+	v = sum { z(i) * [ a(i)*gg + b(i)*ff + c(i)*cc ] / det }
+
+	sigma  = sqrt [ f / (n-3) ]
+	sigmaq = sigma / sqrt (wq)
+	sigmau = sigma / sqrt (wu)
+	sigmav = sigma / sqrt (wv)
+
+    where
+	aa = bs*cs - fs**2
+	bb = cs*as - gs**2
+	cc = as*bs - hs**2
+	ff = gs*hs - as*fs
+	gg = fs*hs - bs*gs
+	hh = fs*gs - cs*hs
+
+	det = as*aa + hs*hh + gs*gg
+
+	wq = det / aa
+	wu = det / bb
+	wv = det / cc
+
+Linear Polarization:
+
+	p      = sqrt( q**2 + u**2)
+	theta  = (1/2) atan (u/q)
+
+	dp/dq  = l = q/p
+	dp/du  = m = u/p
+	dp/dv  = n = 0
+	sigmap = sqrt [ (l*sigmaq)**2 + (m*sigmau)**2 + (n*sigmav)**2 +
+			(2*sigma**2/det)*(ff*m*n + gg*n*l + hh*l*m) ]
+
+	       = sqrt [ (q*sigmaq/p)**2 +
+	                (u*sigmau/p)**2 +
+			(2*sigma**2/det)*(hh*q*u/p**2) ]
+
+
+
+Antonio Pereyra
+30/05/03
+
+
+
+

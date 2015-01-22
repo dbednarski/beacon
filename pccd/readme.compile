@@ -1,0 +1,11 @@
+To compile:
+
+(Linux RedHat 6.x,7.x)
+
+g77 pccd2000.f -o pccd2000.exe
+g77 pccd2000gen.f -o pccd2000gen.exe
+
+(For UNIX/SUN)
+
+f77 -s -O3 -o pccd2000.exe pccd2000.f
+f77 -s -O3 -o pccd2000gen.exe pccd2000gen.f
