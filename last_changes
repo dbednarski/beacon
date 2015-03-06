@@ -1,0 +1,35 @@
+
+1. ccdrap.cl (Moser e Bednarski)
+
+  1.1. jun2014: O IRAF 2.16 não aceita mais * como indicador para output de rotinas como referência ao * no parâmetro de entrada. Implementei as modificações do Moser sobre meu ccdrap.cl de substituição dos * por listas de arquivos (@lista).
+  1.2. jun2014: O arquivo que guarda as coordenadas do alvo agora é independente da versão .1, .2, .3, etc. Assim, não é mais preciso mais selecionar os objetos ordinário e extraordinário várias vezes para as versões diferentes.
+  1.3. ago2014: Acrescentei parâmetros para entrada de um arquivo de coordenadas, caso desejado, no qual o daoedit se baseará para encontrar os feixes ordinário/extraordinário (os parâmetros novos são coordref, coord e icom). Esses parâmetros são úteis para o reduce indentificar automaticamente as coordenadas nos outros filtros a partir do primeiro, devendo apenas o usuário confirmá-las. O shell script "icom" é necessário para a entrada do daedit e seu caminho deve ser referenciado no parâmetro homônimo do ccdrap.
+  1.4. ago2014: Adicionei a impressão dos novos parâmetros no ccdraplog (assim como stack1st que não havia sido adicionado).
+  1.5. set2014: Consertei o modo interativo (intera=yes). O mesmo script "icom" do item 1.3 acima busca pela coordenada atualizada da posição de lâmina a partir da posição de lâmina anterior, ao reportar ao usuário se está certo.
+
+
+2. reduce.cl (Bednarski, ago2014)
+
+  2.1. Adicionei ganho e ruído de leitura como parâmetros do reduce.
+  2.2. Adicionei o rootin como parâmetro obrigatório.
+  2.3. Adicionei parâmetro para rodar grafpol.py e gerar todas modulações .png (parâmetro -a). O caminho para o código também é um parâmetro.
+  2.4. Adicionei para executar o polrap em agupamentos de 8 posições de lâmina sempre (além do agrupamento de n posições)
+  2.5. Adicionei ifs para o sufixo funcionar tanto antes quanto depois do filtro: ex, funciona para dsco_b_g1_0001 e dsco_g1_b_0001.
+  2.6. Adicionei parâmetro para ler ganho e ruído de leitura dos cabeçalhos se desejado, já que estes vêm sendo guardados nos headers.
+  2.7. Adicionei três linhas com pccdgen.wavetyp="half", pccdgen.calc="c" e pccdgen.retar=180. pra segurança na redução.
+  2.8. Resumi o código em um laço sobre o array filter={"u","b","v","r","i"} ao invés do mesmo bloco quintuplicado (para cada filtro).
+  2.9. Modifiquei para imprimir as reduções de sucesso/erros ao final do reduce.
+  2.10. Acrescentei ifs para preencher utilizar coord e coordref do ccdrap e identificar automaticamente ordinário/extraordinário após uma primeira rodada no primeiro filtro. Parâmetro usecoords determina se o ccdrap vai ser chamado dessa maneira a partir do reduce.
+  2.11. Adicionei parâmetro para o caminho ao diretório calib. Útil quando usando calibrações de outras noites.
+
+
+3. logpol.cl (Bednarski, out2014)
+
+  3.1. Criei essa rotina para gerar os arquivos de log, a menos do .out, que deverá ser preenchido a mão.
+  3.2. Ainda necessita de testes para verificar se está tudo certo, além de aperfeiçoamentes.
+
+
+4. beacon.cl (Bednarski, jun2014)
+
+  4.1. A localização do diretório extern é referenciada pela variável "iraf$extern" agora. Isso faz o pacote Beacon ser mais portável.
+  4.2. Adicionei o novo script logpol.cl

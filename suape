@@ -1,4 +1,4 @@
-#!/usr/bin/tcsh
+#!/bin/tcsh
 #
 # Script para inverter bytes em um FITS com 2880 bytes de header
 #

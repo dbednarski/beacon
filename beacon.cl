@@ -42,13 +42,16 @@ echelle
 print ('echelle')
 
 
+set      beacon      = "iraf$extern/beacon/"
 #set      beacon          = beacon
 #set      specpbeacon      = "/iraf/extern/pccdpack/specp/"
+
 
 package  beacon
  
 #set     helpdb           = "beacon$pccdpack.db"
 #set      helpdb           = "beacon$helpdb.mip"
+
 task     macrol           = "beacon$macrol.cl"
 task     pccd             = "beacon$pccd.cl"
 #task     specp            = "specpbeacon$specp.cl"
@@ -81,7 +84,9 @@ task     clean_spec      = "beacon$calib_clean.cl"
 task     pospars          = "beacon$pospars.par"
 task     reduce_mus = "beacon$reduce_mus.cl"
 task     calib_mus  = "beacon$calib_mus.cl"
-task    tests       = "beacon$tests.cl"
+task     tests       = "beacon$tests.cl"
+task     logpol          = "beacon$logpol.cl"
+
 
 type beacon$welcome
 
