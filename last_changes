@@ -6,6 +6,7 @@
   1.3. ago2014: Acrescentei parâmetros para entrada de um arquivo de coordenadas, caso desejado, no qual o daoedit se baseará para encontrar os feixes ordinário/extraordinário (os parâmetros novos são coordref, coord e icom). Esses parâmetros são úteis para o reduce indentificar automaticamente as coordenadas nos outros filtros a partir do primeiro, devendo apenas o usuário confirmá-las. O shell script "icom" é necessário para a entrada do daedit e seu caminho deve ser referenciado no parâmetro homônimo do ccdrap.
   1.4. ago2014: Adicionei a impressão dos novos parâmetros no ccdraplog (assim como stack1st que não havia sido adicionado).
   1.5. set2014: Consertei o modo interativo (intera=yes). O mesmo script "icom" do item 1.3 acima busca pela coordenada atualizada da posição de lâmina a partir da posição de lâmina anterior, ao reportar ao usuário se está certo.
+  1.6. mar2015: Comentei umas linhas de impressão de testes que havia esquecido há tempos.
 
 
 2. reduce.cl (Bednarski, ago2014)
@@ -21,6 +22,10 @@
   2.9. Modifiquei para imprimir as reduções de sucesso/erros ao final do reduce.
   2.10. Acrescentei ifs para preencher utilizar coord e coordref do ccdrap e identificar automaticamente ordinário/extraordinário após uma primeira rodada no primeiro filtro. Parâmetro usecoords determina se o ccdrap vai ser chamado dessa maneira a partir do reduce.
   2.11. Adicionei parâmetro para o caminho ao diretório calib. Útil quando usando calibrações de outras noites.
+  2.12. (mar2015) Agora RENOMEIA os .fits quando a ordem estiver inversa entre filtro e sufixo (complemento ao item 2.5).
+  2.13. mar2015: Mensagens de erro quando não encontra os arquivos .e executáveis.
+  2.14 mar2015: Adicionei parâmetro "pccdpath" pra indicar o caminho ao diretório pccd.
+  2.15 mar2015: Mensagens de erro quando não encontra os campos RDNOISE e GAIN no cabeçalho.
 
 
 3. logpol.cl (Bednarski, out2014)
@@ -31,5 +36,17 @@
 
 4. beacon.cl (Bednarski, jun2014)
 
-  4.1. A localização do diretório extern é referenciada pela variável "iraf$extern" agora. Isso faz o pacote Beacon ser mais portável.
   4.2. Adicionei o novo script logpol.cl
+
+
+5. calib.cl (Bednarski)
+
+  5.1. mar2015: Deleta arquivos "avg" da rodada anterior caso exista no diretório calib.
+  5.2. mar2015: Funciona tanto para arquivos nomeados na ordem _filtro_suf_ quanto na ordem _suf_filtro_.
+  5.3. mar2015: Agora combina todos os flats cúbicos encontrados com o mesmo sufixo. Por exemplo, se houver flat_b_001.fits e flat_b_002.fits, vai combinar os fits de cada série no avg_flat_b.fits final.
+
+
+5. pccdgen.cl (Bednarski, mar2015)
+
+  5.1. Mudei fileexe default para outro endereço (arquivo para caminho do pccd2000gen05.mac.e).
+  

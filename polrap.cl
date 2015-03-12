@@ -30,6 +30,13 @@ string line
 
 bool ver,ignore
 
+
+if (!access(pccdgen.fileexe)){
+  print("ERROR: file ", pccdgen.fileexe, " not found!\nVerify and try again.")
+  error(1,1)
+}
+
+
 print ("# ATTENTION: don't forget to set the parameters of PCCDGEN before using this script")
 print (" ")
 

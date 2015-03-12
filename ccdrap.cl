@@ -33,7 +33,7 @@ real    bigbox=11          {prompt="Imalign: Size of the big centering box"}
 int	reject=63000       {prompt="Reject images with pixel values larger than this value"}
 bool    stack1st=no        {prompt="Attempt to automatically stack 1st WP position?"}
 string  fileexe="/iraf/iraf-2.16.1/extern/beacon/pccd/ccdrap_e.e"  {prompt="CCDRAP executable file"}
-string  icom="/iraf/iraf-2.16.1/extern/beacon/icom"  {prompt="Script for icommands of daoedit"}
+string  icom="/iraf/iraf-2.16.1/extern/beacon/pccd/icom.sh"  {prompt="Script for icommands of daoedit"}
 
 struct *flist1
 struct *flist2
@@ -91,6 +91,17 @@ flati=flat
 trimseci=trimsec
 
 temp1=""
+
+
+if( modo == 2 && !access(fileexe) ){
+  print("ERROR: file ", fileexe, " not found!\nVerify and try again.")
+  error(1,1)
+}
+
+if( !access(icom) && coordref ) {
+  print("ERROR: script ", icom, ", used for \"usecoords=yes\", not found!\nVerify and try again.")
+  error(1,1)
+}
 
 
 if (modo == 2) {
@@ -257,7 +268,7 @@ if (modo == 2) {
 #    aa=scan(bb)
      bb=yes
 
-     print("GRANDE TESTE: havia coordenadas de uma rodada anterior")
+#     print("GRANDE TESTE: havia coordenadas de uma rodada anterior")
   }
 
 
@@ -286,7 +297,7 @@ if (modo == 2) {
     print("# Is it correct (yes|no)?")
     aa=scan(bb)
 
-    print("GRANDE TESTE: usado como base o arquivo passado como parâmetro")
+#   print("GRANDE TESTE: usado como base o arquivo passado como parâmetro")
     delete(comm, ver-, >& "dev$null")
   }
 
@@ -328,7 +339,7 @@ if (modo == 2) {
     aa=scan(bb)
 
 
-     print("GRANDE TESTE: modo convencional")
+#   print("GRANDE TESTE: modo convencional")
   }
 
 # BEDNARSKI, 14jun15: Tive de comentar esse filecalc, pois não funciona no meu IRAF 2.16. Ele não faz diferença.
@@ -534,7 +545,7 @@ while (fscan(flist2, arqim) != EOF) {
 
       uselast=yes
       #temp1="coordtmp.ord"
-     print("GRANDE TESTE: INTERA, havia coordenadas de uma rodada anterior")
+#     print("GRANDE TESTE: INTERA, havia coordenadas de uma rodada anterior")
 
     } else {
 
@@ -542,7 +553,7 @@ while (fscan(flist2, arqim) != EOF) {
       uselast=yes
       #temp1="coordtmp.ord"
 
-     print("GRANDE TESTE: INTERA, usando coordenada da posição de lâmina anterior")
+#     print("GRANDE TESTE: INTERA, usando coordenada da posição de lâmina anterior")
 
       # BEDNARSKI 01-08-2011: Se for a primeira posição de lâmina, não usa a coordenada anterior, desde que o modo seja 1, pois se 2, há sim coordenada anterior, obtida no if (modo==2) que inicia na linha aaaa
       if (i == iw && modo == 1) {

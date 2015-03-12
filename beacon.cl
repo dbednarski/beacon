@@ -42,7 +42,7 @@ echelle
 print ('echelle')
 
 
-set      beacon      = "iraf$extern/beacon/"
+#set      beacon      = "iraf$extern/beacon/"
 #set      beacon          = beacon
 #set      specpbeacon      = "/iraf/extern/pccdpack/specp/"
 

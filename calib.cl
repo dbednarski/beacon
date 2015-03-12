@@ -19,6 +19,7 @@ if(suf==" " || suf=="  ")
 
 #Clean the routines parameters
 unlearn flatcombine
+unlearn zerocombine
 flatcombine.delete=yes
 unlearn ccdproc
 ccdproc.ccdtype = ""
@@ -27,96 +28,125 @@ ccdproc.overscan = no
 ccdproc.trim = no
 ccdproc.flatcor = no
 ccdproc.darkcor = no
-ccdproc.zero = "avg_bias"//suf//".fits"
+
+
+delete(read3Dfits.prefix//"*", ver-, >& "dev$null")
+
 
 #Combine bias or inform "no bias correction" to ccdproc
 ftemp = mktemp("ftemp")
 if (suf == "") 
-  files("bias_0*.fits", > ftemp)
+  files("bias_[0-9]*.fits", > ftemp)
 else 
-  files("bias"//suf//"_0*.fits", > ftemp)
+  files("bias"//suf//"_[0-9]*.fits", > ftemp)
 fstruct = ftemp
 if (fscan(fstruct, fname) != EOF) {
-  lixo = fscan(fstruct, fname) 
-  read3Dfits (fname)
-  unlearn zerocombine
-  zerocombine (read3Dfits.prefix//"bias"//suf//"_0*", output="avg_bias"//suf//".fits", ccdtype="", delete=yes)
+  read3Dfits(fname)
+  while(fscan(fstruct, fname) != EOF)
+    read3Dfits(fname)
+  delete("avg_bias"//suf//".fits", ver-, >& "dev$null" )
+  zerocombine(read3Dfits.prefix//"*", output="avg_bias"//suf//".fits", ccdtype="", delete=yes)
+  ccdproc.zero = "avg_bias"//suf//".fits"
 }
 else {
   ccdproc.zerocor = no
   print ("# NO BIAS IMAGES FOUND!")
-  if (verify) {
-    delete (ftemp, ver-, >& "dev$null")
+  if (verify)
     fstruct = ""
-    }
 }
 delete (ftemp, ver-, >& "dev$null")
+
 
 #Combine flats
 ftemp = mktemp("ftemp")
 if (suf == "") 
-  files("flat_u_0*.fits", > ftemp)
-else
-  files("flat"//suf//"_u_0*.fits", > ftemp)
+  files("flat_u_[0-9]*.fits", > ftemp)
+else {
+  files("flat"//suf//"_u_[0-9]*.fits", > ftemp)
+  files("flat_u"//suf//"_[0-9]*.fits", >> ftemp)
+}
 fstruct = ftemp
 if (fscan(fstruct, fname) != EOF) {
-  lixo = fscan(fstruct, fname) 
-  read3Dfits (fname)
-  flatcombine (read3Dfits.prefix//"flat"//suf//"_u_0*", output="avg_flat_u"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mean")
+  read3Dfits(fname)
+  while(fscan(fstruct, fname) != EOF)
+    read3Dfits(fname)
+ delete("avg_flat_u"//suf//".fits", ver-, >& "dev$null" )
+  flatcombine(read3Dfits.prefix//"*", output="avg_flat_u"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mode")
 }
 delete (ftemp, ver-, >& "dev$null")
+
 
 ftemp = mktemp("ftemp")
 if (suf == "") 
   files("flat_b_0*.fits", > ftemp)
-else
+else {
   files("flat"//suf//"_b_0*.fits", > ftemp)
+  files("flat_b"//suf//"_[0-9]*.fits", >> ftemp)
+}
 fstruct = ftemp
 if (fscan(fstruct, fname) != EOF) {
-  lixo = fscan(fstruct, fname) 
-  read3Dfits (fname)
-  flatcombine (read3Dfits.prefix//"flat"//suf//"_b_0*", output="avg_flat_b"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mean")
+  read3Dfits(fname)
+  while(fscan(fstruct, fname) != EOF)
+    read3Dfits(fname)
+ delete("avg_flat_b"//suf//".fits", ver-, >& "dev$null" )
+  flatcombine (read3Dfits.prefix//"*", output="avg_flat_b"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mode")
 }
 delete (ftemp, ver-, >& "dev$null")
+
 
 ftemp = mktemp("ftemp")
 if (suf == "") 
   files("flat_v_0*.fits", > ftemp)
-else
+else {
   files("flat"//suf//"_v_0*.fits", > ftemp)
+  files("flat_v"//suf//"_[0-9]*.fits", >> ftemp)
+}
 fstruct = ftemp
 if (fscan(fstruct, fname) != EOF) {
-  lixo = fscan(fstruct, fname) 
-  read3Dfits (fname)
-  flatcombine (read3Dfits.prefix//"flat"//suf//"_v_0*", output="avg_flat_v"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mean")
+  read3Dfits(fname)
+  while(fscan(fstruct, fname) != EOF)
+    read3Dfits(fname)
+ delete("avg_flat_v"//suf//".fits", ver-, >& "dev$null" )
+  flatcombine (read3Dfits.prefix//"*", output="avg_flat_v"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mode")
 }
 delete (ftemp, ver-, >& "dev$null")
+
 
 ftemp = mktemp("ftemp")
 if (suf == "") 
   files("flat_r_0*.fits", > ftemp)
-else
+else {
   files("flat"//suf//"_r_0*.fits", > ftemp)
+  files("flat_r"//suf//"_[0-9]*.fits", >> ftemp)
+}
 fstruct = ftemp
 if (fscan(fstruct, fname) != EOF) {
-  lixo = fscan(fstruct, fname) 
-  read3Dfits (fname)
-  flatcombine (read3Dfits.prefix//"flat"//suf//"_r_0*", output="avg_flat_r"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mean")
+  read3Dfits(fname)
+  while(fscan(fstruct, fname) != EOF)
+    read3Dfits(fname)
+ delete("avg_flat_r"//suf//".fits", ver-, >& "dev$null" )
+  flatcombine (read3Dfits.prefix//"*", output="avg_flat_r"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mode")
 }
 delete (ftemp, ver-, >& "dev$null")
+
 
 ftemp = mktemp("ftemp")
 if (suf == "") 
   files("flat_i_0*.fits", > ftemp)
-else
+else {
   files("flat"//suf//"_i_0*.fits", > ftemp)
+  files("flat_i"//suf//"_[0-9]*.fits", >> ftemp)
+}
 fstruct = ftemp
 if (fscan(fstruct, fname) != EOF) {
-  lixo = fscan(fstruct, fname) 
-  read3Dfits (fname)
-  flatcombine (read3Dfits.prefix//"flat"//suf//"_i_0*", output="avg_flat_i"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mean")
+  read3Dfits(fname)
+  while(fscan(fstruct, fname) != EOF)
+    read3Dfits(fname)
+ delete("avg_flat_i"//suf//".fits", ver-, >& "dev$null" )
+  flatcombine (read3Dfits.prefix//"*", output="avg_flat_i"//suf//".fits", ccdtype="", subsets=no, delete=yes, scale="mode")
 }
 delete (ftemp, ver-, >& "dev$null")
+
 
 fstruct = ""
 

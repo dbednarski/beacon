@@ -17,7 +17,7 @@ real    ganho           {prompt="CCD gain (e/adu)"}
 real    deltatheta      {prompt="correction in polarization angle (degrees)"}
 real    zero=0          {prompt="Zero of waveplate"}
 string  fileout         {prompt="output file (.log)"}
-string  fileexe="/iraf/extern/beacon/pccd/pccd2000gen05.mac.e"       {prompt="pccd execute file (.exe)"}
+string  fileexe="/iraf/iraf-2.16.1/extern/beacon/pccd/pccd2000gen05.mac.e"       {prompt="pccd execute file (.exe)"}
 bool    norm = yes      {prompt="include normalization?"}
 struct  *flist
 struct  line1            {length=1000}
