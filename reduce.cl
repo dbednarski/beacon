@@ -1,5 +1,5 @@
 #
-#Ver 2.1, 15mar10
+#Ver 2.2, 15may10
 #
 procedure reduce(pref)
 
@@ -8,12 +8,13 @@ string suf="_f"   {prompt="Suffix of filenames (same of calib. images)"}
 string calib="../calib"   {prompt="Path to calib directory (WITHOUT last '/')"}
 bool  dov1=yes    {prompt="Do the reduction without calibrations?"}
 bool  dov2=yes    {prompt="Do the reduction using the calib. images?"}
-bool  head=yes    {prompt="Use gain and readnoise values from headers?"}
+bool  head=yes    {prompt="(obsolete) Use gain and readnoise values from headers?"}
 bool  usecoords=yes    {prompt="Use previous daofind coordinates to next filters?"}
 bool  dograph=yes    {prompt="Generate all .png graphs?"}
-real ganho="INDEF"   {prompt="CCD gain to be used if head=no (e/adu)"}
-real readno="INDEF"  {prompt="ReadNoise (ADUs) to be used if head=no (adu)"}
-string pccdpath="/iraf/iraf-2.16.1/extern/beacon/pccd/" {prompt="Path to pccd files .e (blank to use values on ccdrap/pccdgen)"}
+real ganho="INDEF"   {prompt="(obsolete) CCD gain to be used if head=no (e/adu)"}
+real readno="INDEF"  {prompt="(obsolete) ReadNoise (ADUs) to be used if head=no (adu)"}
+int	reject=0     {prompt="Reject images with counts larger than this value (0 to use value from ccdrap)"}
+string pccdpath="/iraf/iraf-2.16.1/extern/beacon/pccd/" {prompt="Path to .e pccd files (blank to use values from ccdrap/pccdgen)"}
 string graphpol="/iraf/iraf-2.16.1/extern/beacon/grafpol.py"   {prompt="Path to the grafpol.py code"}
 
 struct *fstruct
@@ -21,9 +22,11 @@ struct *fstruct
 
 begin
 
-string ftemp, ftemp2, fname, flatname, inname, rinname, filter[5], verbose, coordfile
-int i, n
+string ftemp, ftemp2, fname, flatname, inname, rinname, filter[5], verbose, coordfile, outamp, ccd, bin, serno
+int i, n, test
+real nreject
 
+test=0
 verbose = mktemp("verb")
 coordfile=""
 filter[1]="u"
@@ -59,6 +62,12 @@ if(!head) {
   ccdrap.ganho = ganho
 }
 
+# Setting reject
+if(reject != 0){
+  ccdrap.reject=reject
+}
+
+
 # Set zero parameters of ccdrap
 ccdrap.zero = calib//"/avg_bias"//suf//".fits"
 if(dov2 && access(ccdrap.zero))
@@ -71,7 +80,7 @@ if(suf==" " || suf=="  ")
 
 
 
-# Loop at the filters
+# Loop on filters
 for (i = 1; i < 6; i=i+1) {
 
   ftemp = mktemp("ftemp_"//filter[i])
@@ -79,7 +88,7 @@ for (i = 1; i < 6; i=i+1) {
   rinname = pref//suf//"_"//filter[i]
 
 
-  # List only images of type pref_filter[i]_suf_####.fits, where #### are only digits. It's essential to avoid get a second suffix (e.g. if suffix parameter is "_g5", it gets only "dsco_v_g5_0000.fits" files and not "dsco_v_g5_f_0000.fits")
+  # List only images of type pref_filter[i]_suf_####.fits, where #### are only digits. It's essential to not get a second suffix (e.g. if suffix parameter is "_g5", it gets only "dsco_v_g5_0000.fits" files and not "dsco_v_g5_f_0000.fits")
   files(inname//"_[0-9]*.fits", > ftemp)
   fstruct = ftemp
 
@@ -94,7 +103,7 @@ for (i = 1; i < 6; i=i+1) {
   if( n == 0 ){
 
     print("rename ", "'s/"//rinname//"_/"//inname//"_/' ", rinname//"_[0-9]*.fits", > "roda")
-    !source roda
+    !source roda >& "dev$null"
     delete("roda", ver-, >& "dev$null")
 
     ftemp = mktemp("ftemp_"//filter[i])
@@ -114,6 +123,51 @@ for (i = 1; i < 6; i=i+1) {
 
   }
 
+  # Verify if reject is correct
+  imgets(fname, "VBIN")
+  bin = imgets.value
+  imgets(fname, "SERNO")
+  serno = imgets.value
+  if(serno == "4335"){
+    ccd = "iXon"
+    imgets(fname, "OUTPTAMP")
+    outamp = imgets.value
+  }
+  if(serno == "10127"){
+    ccd = "iKon 10127"
+    outamp = "Conventional"
+  }
+  if(serno == "9867"){
+    ccd = "iKon 9867"
+    outamp = "Conventional"
+  }
+  if(serno != "9867" && serno != "10127" && serno != "4335"){
+    ccd = "Unknown (Serial No. "//serno//")"
+    outamp = "Unknown"
+  }
+
+  nreject = 0
+  if(bin == "2" && outamp == "Conventional")
+    nreject = 62000
+  if(bin == "2" && outamp == "Electron Multiplying")
+    nreject = 22000
+
+  if(nreject == 0){
+    print("FILTER "//filter[i]//": WARNING! Be sure about the reject value.")
+    test = 1
+    sleep(1)
+    print("FILTER "//filter[i]//": WARNING! Be sure about the reject value.", >> verbose)
+  }
+  else
+    if( ccdrap.reject - nreject > 1000 || ccdrap.reject - nreject < -1000){
+#      print("FILTER "//filter[i]//": \'reject\' value may be wrong.")
+#      sleep(1)
+#      print("FILTER "//filter[i]//": ABORTED!\n\n)
+      print("\nABORTED! Reject value (saturation level) should be "//nreject//", not the assigned value of "//ccdrap.reject//" for CCD "//ccd//", bin "//bin//", "//outamp//".\nChange \'reject\' parameter and run again.", >> verbose)
+      break
+    }
+
+
   # Receive gain and readnoise from headers
   if(head) {
     imgets(fname, "GAIN")
@@ -125,7 +179,7 @@ for (i = 1; i < 6; i=i+1) {
     else {
       print("FILTER "//filter[i]//": \"GAIN\" and \"RDNOISE\" don't exist in headers.")
       sleep(1)
-      print("FILTER "//filter[i]//": nothing done! Fits haven't fields \"GAIN\" and \"RDNOISE\" in headers. Pass manually these values through the reduce parameters.", >> verbose)
+      print("FILTER "//filter[i]//": NOT REDUCED! Fits haven't fields \"GAIN\" and \"RDNOISE\" in headers. Pass manually these values through the reduce parameters.", >> verbose)
       next
     }
   }
@@ -182,7 +236,7 @@ for (i = 1; i < 6; i=i+1) {
         print("FILTER "//filter[i]//" .2: DONE!", >> verbose)
     }
     else
-      print("FILTER "//filter[i]//" .2: ERROR - calibration images not found.", >> verbose)
+      print("FILTER "//filter[i]//" .2: NOT REDUCED! Calibration images not found.", >> verbose)
 
   }
 
@@ -201,6 +255,10 @@ if(dograph) {
 
 
 # Print the sumary of reductions
+if(test == 1)
+  print("\nWARNING! Be sure that the reject value (saturation level) is correct for unknown configuration: CCD "//ccd//", bin "//bin//", "//outamp//".", >> verbose)
+print("", >> verbose)
+    
 if(access(verbose)){
   print("\n\n================")
   cat(verbose)

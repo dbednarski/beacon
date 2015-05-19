@@ -30,7 +30,7 @@ real    annulus=30.        {prompt="phot: Inner radius of sky annulus in scale u
 real    dannulus=10.       {prompt="phot: Width of sky annulus in scale units"}
 real    boxsize=7          {prompt="Imalign: Size of the small centering box"}
 real    bigbox=11          {prompt="Imalign: Size of the big centering box"}
-int	reject=63000       {prompt="Reject images with pixel values larger than this value"}
+int	    reject=63000       {prompt="Reject images with pixel values larger than this value"}
 bool    stack1st=no        {prompt="Attempt to automatically stack 1st WP position?"}
 string  fileexe="/iraf/iraf-2.16.1/extern/beacon/pccd/ccdrap_e.e"  {prompt="CCDRAP executable file"}
 string  icom="/iraf/iraf-2.16.1/extern/beacon/pccd/icom.sh"  {prompt="Script for icommands of daoedit"}
@@ -38,6 +38,8 @@ string  icom="/iraf/iraf-2.16.1/extern/beacon/pccd/icom.sh"  {prompt="Script for
 struct *flist1
 struct *flist2
 struct *flist3
+struct *flist4
+struct *flist5
 
 
 begin
@@ -45,12 +47,12 @@ begin
 string workingimage, root
 string suffix, suffix2
 
-string temp0, temp1, temp2, temp3, temp4, temp5, tempshift, aa, linedata, tempcoord, comm
+string temp0, temp1, temp2, temp3, temp4, temp5, temp6, tempshift, aa, linedata, tempcoord, comm
 string fname, fname2, fname3, fname4
 struct line1, line2
 string diret, raiz, lista
 string lixo1
-string imagem, fileord, fileout, filetemp
+string imagem, fileord, fileout, filetemp, imname, filecounts
 string zeroi, flati
 string arq, arqim
 string biasseci=""
@@ -58,12 +60,14 @@ string trimseci=""
 string darki=""
 
 real   xxx, yyy, xcomp, ycomp, deltax, deltay
-real   sky_mean, skysigma_mean, fwhm_mean
+real   sky_mean, skysigma_mean, fwhm_mean, count, actcount[100], basecount[100]
 real   maxdata
 real   JD[1000]
 
-int iw, nw, i, j, n=0
+int iw, nw, i, j, u, n=0
 int nframes, nimages, nstars, nlin
+int xx[100], yy[100]
+
 
 bool trimi, fileexists, ver, ver1
 bool bb=no
@@ -103,6 +107,9 @@ if( !access(icom) && coordref ) {
   error(1,1)
 }
 
+
+delete("daoedit* imalign* tmpcont* counts* coordtmp.ord", ver-, >& "dev$null")
+  
 
 if (modo == 2) {
 
@@ -250,9 +257,18 @@ if (modo == 2) {
 # IMPORTANTE, IMPORTANTE: automatizar para nem o "yes" necessitar ser dado, após fazer os testes e verificar que está tudo certo.
 
   fileexists=access("coord_"//root//".ord")
+  if(fileexists)
+    temp1="coord_"//root//".ord"
+  else{
+    fileexists=access("coord_"//root//"_001.ord")
+    if(fileexists && intera)
+      temp1="coord_"//root//"_001.ord"
+    if(fileexists && !intera)
+      fileexists = no
+  }
 
   if(fileexists) {
-    temp1="coord_"//root//".ord"
+    #temp1="coord_"//root//".ord"
 
     print"# Running DISPLAY ...")
     print("")
@@ -342,6 +358,7 @@ if (modo == 2) {
 #   print("GRANDE TESTE: modo convencional")
   }
 
+
 # BEDNARSKI, 14jun15: Tive de comentar esse filecalc, pois não funciona no meu IRAF 2.16. Ele não faz diferença.
 #  temp2=mktemp("filecalc")
 #  unlearn filecalc
@@ -355,6 +372,29 @@ if (modo == 2) {
   } else {
     unlearn rename
     rename(temp1, "coordtmp.ord")
+  }
+
+  # BEDNARSKI: 2015, Added. Get pixel values of selected coordinates to prevent object missing in the further steps.
+  type("coordtmp.ord")
+  flist2="coordtmp.ord"
+  filecounts=mktemp("counts")
+  lixo1 = fscan(flist2, line1)
+  lixo1 = fscan(flist2, line1)
+  k=1
+  while(fscan(flist2, line1) != EOF) {
+#    print(line1)
+    temp6=mktemp("tmpconta")
+    linedata=fscan(line1, xxx,yyy,lixo1,lixo1)
+    print(xxx,yyy)
+    listpixels(images=temp0//"["//nint(xxx)//":"//nint(xxx)//","//nint(yyy)//":"//nint(yyy)//"]", > temp6)
+    # Saving the value inside basecount[k] variable
+    flist4=temp6
+    lixo1 = fscan(flist4,lixo1,count)
+    basecount[k]=count
+    print("# Reference counts: "//basecount[k])
+    k=k+1
+    delete (temp6, ver-, >& "dev$null")
+
   }
 
   print("")
@@ -608,7 +648,7 @@ while (fscan(flist2, arqim) != EOF) {
         delete(comm, ver-, >& "dev$null")
         display(image=imagem,frame=1)
 
-     print("GRANDE TESTE: Intera, atualizando coordenadas")
+#     print("GRANDE TESTE: Intera, atualizando coordenadas")
       }
 
       print("")
@@ -816,20 +856,57 @@ while (fscan(flist2, arqim) != EOF) {
     temp3=mktemp("phot")
     temp5=mktemp("daoedit")
 
-
+    # BEDNARSKI: 2015. I changed this block to identify when WP position is missed. I need to test.
     while (fscan(flist1, imagem) != EOF) {
       j=j+1
       k=1
 
       while (k<=nstars) {
 
+        # Reading ordinary beam
         lixo1=fscan(flist3,line1)
-        linedata=fscan(line1,lixo1,xxx,lixo1,yyy,lixo1,lixo1)
+        linedata=fscan(line1,imname,xxx,lixo1,yyy,lixo1,lixo1)
         print (xxx,yyy," 1 a", >>temp5)
+        xx[2*k-1]=nint(xxx)
+        yy[2*k-1]=nint(yyy)
+        temp6=mktemp("tmpcont")
+        listpixels(images=imname//"["//xx[2*k-1]//":"//xx[2*k-1]//","//yy[2*k-1]//":"//yy[2*k-1]//"]", > temp6)
+        flist5=temp6
+        lixo1=fscan(flist5,lixo1,count)
+        actcount[2*k-1] = count
+        delete (temp6, ver-, >& "dev$null")
 
+        # Reading extraordinary beam
         lixo1=fscan(flist3,line1)
-        linedata=fscan(line1,lixo1,xxx,lixo1,yyy,lixo1,lixo1)
+        linedata=fscan(line1,imname,xxx,lixo1,yyy,lixo1,lixo1)
         print (xxx,yyy," 1 a", >>temp5)
+        temp6=mktemp("tmpcont")
+        xx[2*k]=nint(xxx)
+        yy[2*k]=nint(yyy)
+        listpixels(images=imname//"["//xx[2*k]//":"//xx[2*k]//","//yy[2*k]//":"//yy[2*k]//"]", > temp6)
+        flist5=temp6
+        lixo1=fscan(flist5,lixo1,count)
+        actcount[2*k] = count
+        delete (temp6, ver-, >& "dev$null")
+
+        print("ORD: basecount[k] "//basecount[2*k-1])
+        print("ORD: actcount[k] "//actcount[2*k-1])
+        print("EXORD: basecount[k] "//basecount[2*k])
+        print("EXORD: actcount[k] "//actcount[2*k])
+
+        # Calculating if the coordinates were missed
+        # 1) Verify if a same coordinate was used for more than once time
+        if(xx[2*k-1] - xx[2*k] < 5  &&  xx[2*k-1] - xx[2*k] > -5 &&
+           yy[2*k-1] - yy[2*k] < 5  &&  yy[2*k-1] - yy[2*k] > -5)
+          print("delta*************************Missing position!")
+        for (u=1; u <= 2*k-2; u += 1) {
+          if(xx[2*k-1] - xx[u] < 5  &&  xx[2*k-1] - xx[u] > -5 &&
+             yy[2*k] - yy[u] < 5  &&  yy[2*k] - yy[u] > -5)
+            print("delta*************************Missing position!")
+        }
+        # 2) Verify if the pixel value is small, probably value of sky
+        if (real(basecount[2*k-1]) > 10*real(actcount[2*k-1]) || real(basecount[2*k]) > 10*real(actcount[2*k]))
+          print("count*************************Missing position!")
 
         k += 1
       }
@@ -958,6 +1035,8 @@ if (modo == 2) {
 
 
 delete("coordtmp.ord", ver-, >& "dev$null")
+delete ("tmpcont2", ver-, >& "dev$null")
+delete (filecounts, ver-, >& "dev$null")
 #delete("lista*", ver-, >& "dev$null")
 
 flist1=""

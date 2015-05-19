@@ -7,36 +7,40 @@
   1.4. ago2014: Adicionei a impressão dos novos parâmetros no ccdraplog (assim como stack1st que não havia sido adicionado).
   1.5. set2014: Consertei o modo interativo (intera=yes). O mesmo script "icom" do item 1.3 acima busca pela coordenada atualizada da posição de lâmina a partir da posição de lâmina anterior, ao reportar ao usuário se está certo.
   1.6. mar2015: Comentei umas linhas de impressão de testes que havia esquecido há tempos.
+  1.7. mai2015: Coloquei critérios para calcular se um dos feixes selecionados em uma posição do CCD é perdida ao longa da redução. Isso é feito de duas maneiras: 1) As contagens dos centróides da primeira posição de lâmina são guardadas em uma variável e caso alguma das imagens de uma posição de lâmina dê contagens 10 vezes menor que essa primeira, é porque o algoritmo perdeu o alvo. Veja que isso pode ser repensado em termo das contagens de céu, pois o objeto pode praticamente sumir se houver muitas nuvens; 2) Às vezes um dos feixes é perdido e associado erroneamente a outro feixe e para isso, é verificado se para uma mesma imagem há dois feixes diferentes associados às mesmas coordenadas (observe que se há os feixes ordinário e extraordinário e, hipoteticamente, se invertam em uma imagem, o algoritmo adicionado NÃO vai reportar o ocorrido).
+  Isso é importante porque algumas vezes a redução não é assistida pelo usuário, o que pode deixar passar uma perda nas coordenadas. Ainda não dei um "break" no laço quando um objeto é perdido, mas este é o objetivo após assegurar que a implementação está funcionando. IMPORTANTE: Ir testando nas próximas reduções antes de incorporar de vez no ccdrap.
+  1.8. mai2015: Acrescentei umas mudanças sobre os arquivos de coordenadas caso existentes durante uma nova rodada (pra funcionar um pouco melhor se intera==yes)
+  
 
+2. reduce.cl (Bednarski)
 
-2. reduce.cl (Bednarski, ago2014)
-
-  2.1. Adicionei ganho e ruído de leitura como parâmetros do reduce.
-  2.2. Adicionei o rootin como parâmetro obrigatório.
-  2.3. Adicionei parâmetro para rodar grafpol.py e gerar todas modulações .png (parâmetro -a). O caminho para o código também é um parâmetro.
-  2.4. Adicionei para executar o polrap em agupamentos de 8 posições de lâmina sempre (além do agrupamento de n posições)
-  2.5. Adicionei ifs para o sufixo funcionar tanto antes quanto depois do filtro: ex, funciona para dsco_b_g1_0001 e dsco_g1_b_0001.
-  2.6. Adicionei parâmetro para ler ganho e ruído de leitura dos cabeçalhos se desejado, já que estes vêm sendo guardados nos headers.
-  2.7. Adicionei três linhas com pccdgen.wavetyp="half", pccdgen.calc="c" e pccdgen.retar=180. pra segurança na redução.
-  2.8. Resumi o código em um laço sobre o array filter={"u","b","v","r","i"} ao invés do mesmo bloco quintuplicado (para cada filtro).
-  2.9. Modifiquei para imprimir as reduções de sucesso/erros ao final do reduce.
-  2.10. Acrescentei ifs para preencher utilizar coord e coordref do ccdrap e identificar automaticamente ordinário/extraordinário após uma primeira rodada no primeiro filtro. Parâmetro usecoords determina se o ccdrap vai ser chamado dessa maneira a partir do reduce.
-  2.11. Adicionei parâmetro para o caminho ao diretório calib. Útil quando usando calibrações de outras noites.
-  2.12. (mar2015) Agora RENOMEIA os .fits quando a ordem estiver inversa entre filtro e sufixo (complemento ao item 2.5).
+  2.1.  ago2014: Adicionei ganho e ruído de leitura como parâmetros do reduce.
+  2.2.  ago2014: Adicionei o rootin como parâmetro obrigatório.
+  2.3.  ago2014: Adicionei parâmetro para rodar grafpol.py e gerar todas modulações .png (parâmetro -a). O caminho para o código também é um parâmetro.
+  2.4.  ago2014: Adicionei para executar o polrap em agupamentos de 8 posições de lâmina sempre (além do agrupamento de n posições)
+  2.5.  ago2014: Adicionei ifs para o sufixo funcionar tanto antes quanto depois do filtro: ex, funciona para dsco_b_g1_0001 e dsco_g1_b_0001.
+  2.6.  ago2014: Adicionei parâmetro para ler ganho e ruído de leitura dos cabeçalhos se desejado, já que estes vêm sendo guardados nos headers.
+  2.7.  ago2014: Adicionei três linhas com pccdgen.wavetyp="half", pccdgen.calc="c" e pccdgen.retar=180. pra segurança na redução.
+  2.8.  ago2014: Resumi o código em um laço sobre o array filter={"u","b","v","r","i"} ao invés do mesmo bloco quintuplicado (para cada filtro).
+  2.9.  ago2014: Modifiquei para imprimir as reduções de sucesso/erros ao final do reduce.
+  2.10. ago2014: Acrescentei ifs para preencher utilizar coord e coordref do ccdrap e identificar automaticamente ordinário/extraordinário após uma primeira rodada no primeiro filtro. Parâmetro usecoords determina se o ccdrap vai ser chamado dessa maneira a partir do reduce.
+  2.11. ago2014: Adicionei parâmetro para o caminho ao diretório calib. Útil quando usando calibrações de outras noites.
+  2.12. mar2015: Agora RENOMEIA os .fits quando a ordem estiver inversa entre filtro e sufixo (complemento ao item 2.5).
   2.13. mar2015: Mensagens de erro quando não encontra os arquivos .e executáveis.
-  2.14 mar2015: Adicionei parâmetro "pccdpath" pra indicar o caminho ao diretório pccd.
-  2.15 mar2015: Mensagens de erro quando não encontra os campos RDNOISE e GAIN no cabeçalho.
+  2.14. mar2015: Adicionei parâmetro "pccdpath" pra indicar o caminho ao diretório pccd.
+  2.15. mar2015: Mensagens de erro quando não encontra os campos RDNOISE e GAIN no cabeçalho.
+  2.16. mai2015: Adicionei campo para o parâmetro "reject". Além disso, verifica se o valor é compatível com as configurações de CCD, bin e modo CON/EM nos headers. Se não, aborta a redução.
 
 
-3. logpol.cl (Bednarski, out2014)
+3. logpol.cl (Bednarski)
 
-  3.1. Criei essa rotina para gerar os arquivos de log, a menos do .out, que deverá ser preenchido a mão.
-  3.2. Ainda necessita de testes para verificar se está tudo certo, além de aperfeiçoamentes.
+  3.1. out2014: Criei essa rotina para gerar os arquivos de log, a menos do .out, que deverá ser preenchido a mão.
+  3.2. out2014: Ainda necessita de testes para verificar se está tudo certo, além de aperfeiçoamentes.
 
 
-4. beacon.cl (Bednarski, jun2014)
+4. beacon.cl (Bednarski)
 
-  4.2. Adicionei o novo script logpol.cl
+  4.2. jun2014: Adicionei o novo script logpol.cl
 
 
 5. calib.cl (Bednarski)
@@ -46,7 +50,7 @@
   5.3. mar2015: Agora combina todos os flats cúbicos encontrados com o mesmo sufixo. Por exemplo, se houver flat_b_001.fits e flat_b_002.fits, vai combinar os fits de cada série no avg_flat_b.fits final.
 
 
-5. pccdgen.cl (Bednarski, mar2015)
+6. pccdgen.cl (Bednarski)
 
-  5.1. Mudei fileexe default para outro endereço (arquivo para caminho do pccd2000gen05.mac.e).
+  6.1. mar2015: Mudei fileexe default para outro endereço (arquivo para caminho do pccd2000gen05.mac.e).
   
