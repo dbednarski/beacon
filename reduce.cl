@@ -1,7 +1,7 @@
 #
 #Ver 2.2, 15may10
 #
-procedure reduce(pref)
+procedure reduce
 
 string pref="tpyx" {prompt="Prefix of filenames (WITHOUT '_')"}
 string suf="_f"   {prompt="Suffix of filenames (same of calib. images)"}
@@ -25,6 +25,8 @@ begin
 string ftemp, ftemp2, fname, flatname, inname, rinname, filter[5], verbose, coordfile, outamp, ccd, bin, serno
 int i, n, test
 real nreject
+
+!rm -f verb*  &> /dev/null
 
 test=0
 verbose = mktemp("verb")
@@ -79,7 +81,6 @@ if(suf==" " || suf=="  ")
   suf=""
 
 
-
 # Loop on filters
 for (i = 1; i < 6; i=i+1) {
 
@@ -102,8 +103,8 @@ for (i = 1; i < 6; i=i+1) {
 # Verify if "filter" and "suf" are inverted in filenames. Case yes, rename.
   if( n == 0 ){
 
-    print("rename ", "'s/"//rinname//"_/"//inname//"_/' ", rinname//"_[0-9]*.fits", > "roda")
-    !source roda >& "dev$null"
+    print("rename ", "'s/"//rinname//"_/"//inname//"_/' ", rinname//"_[0-9]*.fits &> /dev/null", > "roda")
+    !source roda
     delete("roda", ver-, >& "dev$null")
 
     ftemp = mktemp("ftemp_"//filter[i])
@@ -248,7 +249,7 @@ for (i = 1; i < 6; i=i+1) {
 # Bednarski: generate .png modulation graphs:
 if(dograph) {
   print("\n# Generating graphs...\n")
-  print(graphpol, " -a ", > "roda")
+  print(graphpol, " ", suf, > "roda")
   !source roda
   delete("roda", ver-, >& "dev$null")
 }

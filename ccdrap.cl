@@ -45,7 +45,7 @@ struct *flist5
 begin
 
 string workingimage, root
-string suffix, suffix2
+string suffix, suffix2, suffix3
 
 string temp0, temp1, temp2, temp3, temp4, temp5, temp6, tempshift, aa, linedata, tempcoord, comm
 string fname, fname2, fname3, fname4
@@ -108,8 +108,9 @@ if( !access(icom) && coordref ) {
 }
 
 
-delete("daoedit* imalign* tmpcont* counts* coordtmp.ord", ver-, >& "dev$null")
-  
+#delete("daoedit* imalign* tmpcont* counts* coordtmp.ord dev", ver-, >& "dev$null")
+!rm -f lista* daoedit* imalign* icommands* coordtmp.ord dev counts* tmpcounts* &> /dev/null
+
 
 if (modo == 2) {
 
@@ -206,9 +207,9 @@ if (modo == 2) {
     unlearn datapars
     datapars.datamin=maxdata*1./7.	
 
-    temp1=mktemp("coordtmp")
+    tempcoord=mktemp("coordtmp")
     unlearn daofind
-    daofind(image=imagem,output=temp1,verify="no")
+    daofind(image=imagem,output=tempcoord,verify="no")
 
     imdel(images="shifts_*.fits",go_ahead=yes, verify=no, >& "dev$null")
 
@@ -221,7 +222,7 @@ if (modo == 2) {
       #"@"//fname,output="ccdp_//@"//fname
 
       imalign(input="@"//fname2,reference=imagem,
-              coords=temp1, output="shifts_//@"//fname2, shifts="shifts",
+              coords=tempcoord, output="shifts_//@"//fname2, shifts="shifts",
               boxsize=boxsize, bigbox=bigbox, trimimages=no, shiftimages=yes)
 
     } else {
@@ -229,12 +230,12 @@ if (modo == 2) {
       fname2=mktemp("lista")
       files("ccd_*.fits", > fname2)
       imalign(input="@"//fname2,reference=imagem,
-              coords=temp1,output="shifts_//@"//fname2,shifts="",
+              coords=tempcoord,output="shifts_//@"//fname2,shifts="",
 	      boxsize=boxsize,bigbox=bigbox,trimimages=no,shiftimages=yes)
     }
 
     delete(fname2, ver-, >& "dev$null")
-    delete(temp1, ver-, >& "dev$null")
+    delete(tempcoord, ver-, >& "dev$null")
     imsum(input="shifts_*.fits", output=temp0, title="",hparams="",
            pixtype="double",calctype="double",option="sum", verbose=no)
 
@@ -258,23 +259,22 @@ if (modo == 2) {
 
   fileexists=access("coord_"//root//".ord")
   if(fileexists)
-    temp1="coord_"//root//".ord"
+    tempcoord="coord_"//root//".ord"
   else{
     fileexists=access("coord_"//root//"_001.ord")
     if(fileexists && intera)
-      temp1="coord_"//root//"_001.ord"
+      tempcoord="coord_"//root//"_001.ord"
     if(fileexists && !intera)
       fileexists = no
   }
 
   if(fileexists) {
-    #temp1="coord_"//root//".ord"
 
     print"# Running DISPLAY ...")
     print("")
     display(image=temp0,frame=1)
 
-    tvmark(1, temp1, label=no, number=yes, radii=10, mark="circle", color=204)
+    tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
     # Descomentar depois
 #    sleep 1
 
@@ -294,21 +294,21 @@ if (modo == 2) {
   if(coordref && access(coord) && !fileexists) {
 
     comm=mktemp("icommands")
-    temp1="coord_"//root//".ord"
+    tempcoord="coord_"//root//".ord"
 
     # O parâmetro iccomands são os comandos que se daria interativamente no daoedit, mas registrados num arquivo de texto
     print(icom, " ", coord, " ", comm, > "roda")
     !source roda
 
     centerpars.cbox=20.
-    daoedit(image=temp0, icommands=comm, gcommands="", > temp1)
-    type (temp1)
+    daoedit(image=temp0, icommands=comm, gcommands="", > tempcoord)
+    type (tempcoord)
 
     print"# Running DISPLAY ...")
     print("")
     display(image=temp0,frame=1)
 
-    tvmark(1, temp1, label=no, number=yes, radii=10, mark="circle", color=204)
+    tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
     print("")
     print("# Is it correct (yes|no)?")
     aa=scan(bb)
@@ -322,7 +322,7 @@ if (modo == 2) {
 
   while (bb == no) {	
 
-    delete(temp1, ver-, >& "dev$null")
+#    delete(tempcoord, ver-, >& "dev$null")
 
     print"# Running DISPLAY ...")
     print("")
@@ -340,15 +340,15 @@ if (modo == 2) {
     print("6. type <q> to quit of daoedit")
     print("")
 		
-    temp1=mktemp("daoedit")
-    daoedit(image=temp0, icommands="", gcommands="",> temp1)
-    type (temp1)
+    tempcoord=mktemp("daoedit")
+    daoedit(image=temp0, icommands="", gcommands="",> tempcoord)
+    type (tempcoord)
 		
     print("")
     print("Running TVMARK ...")
     print("")
 		
-    tvmark(1, temp1, label=no, number=yes, radii=10, mark="circle", color=204)
+    tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
 		
     print("")
     print("# Is it correct (yes|no)?")
@@ -364,19 +364,24 @@ if (modo == 2) {
 #  unlearn filecalc
 #  print("#  XCENTER   YCENTER       SKY  SKYSIGMA      FWHM    COUNTS       MAG", > temp2)
 #  filecalc.format="%10.2f%10.2f%10.1f%10.2f%10.2f%10.1f%10.2f"
-#  filecalc(temp1,"$1;$2;$3;$4;$5", calctyp="double", >> temp2)
+#  filecalc(tempcoord,"$1;$2;$3;$4;$5", calctyp="double", >> temp2)
 
-
-  if(temp1=="coord_"//root//".ord") {
-    copy(temp1, "coordtmp.ord")
+  if(!intera){
+    if (tempcoord!="coord_"//root//".ord")
+      rename(tempcoord, "coord_"//root//".ord")
+    delete("coordtmp.ord", ver-, >& "dev$null")
+    copy("coord_"//root//".ord", "coordtmp.ord")
   } else {
-    unlearn rename
-    rename(temp1, "coordtmp.ord")
+    if(tempcoord!="coord_"//root//"_001.ord")
+      rename(tempcoord, "coord_"//root//"_001.ord")
+    delete("coordtmp.ord", ver-, >& "dev$null")
+    copy("coord_"//root//"_001.ord", "coordtmp.ord")
   }
+  tempcoord="coordtmp.ord"
 
   # BEDNARSKI: 2015, Added. Get pixel values of selected coordinates to prevent object missing in the further steps.
-  type("coordtmp.ord")
-  flist2="coordtmp.ord"
+  type(tempcoord)
+  flist2=tempcoord
   filecounts=mktemp("counts")
   lixo1 = fscan(flist2, line1)
   lixo1 = fscan(flist2, line1)
@@ -398,29 +403,14 @@ if (modo == 2) {
   }
 
   print("")
-
-
-# BEDNARSKI 01-08-2011: INICIO DAS MODIFICAÇÕES, comentei abaixo e adicionei linha acima
-#  if (modo == "2") {
-#		rename(temp1,"coordtmp.ord")
-#	} else {
-#		rename(temp1,"coordtmp.ord")
-#		temp1="coordtmp"
-#	}
-
-  # BEDNARSKI 01-08-2011: Criei uma variável que 'contém o endereço' do arquivo de coordenadas (será utilizado posteriormente)
-  if (intera == no)
-    tempcoord="coordtmp.ord"
-	
-  type "coordtmp.ord"
   print("")
 
   unlearn tstat
-  tstat("coordtmp.ord",3)
+  tstat(tempcoord,3)
   sky_mean=tstat.mean
-  tstat("coordtmp.ord",4)
+  tstat(tempcoord,4)
   skysigma_mean=tstat.mean
-  tstat("coordtmp.ord",5)
+  tstat(tempcoord,5)
   fwhm_mean=tstat.mean
 
   print("")
@@ -428,7 +418,6 @@ if (modo == 2) {
   print("sky      : ",sky_mean)
   print("skysigma : ",skysigma_mean)
   print("fwhm     : ",fwhm_mean)	
-
 
 }
 
@@ -475,6 +464,8 @@ while (fscan(flist2, arqim) != EOF) {
     }
   } else {
 
+    print("ERROR: "//arqim//" image is not a cubic fits! Is it a spurious file? Verify and try again!")
+    error(1,1)
     imcopy(input=workingimage, output="cp_//"//workingimage//"_001", verbose=no)
   }
 		
@@ -561,183 +552,156 @@ while (fscan(flist2, arqim) != EOF) {
 # BEDNARSKI 01-08-2011: Comentei abaixo para que o intera se aplicasse a ambos os modos
 # if (modo == 1) {
 
-  if (intera) {
-
-    temp2="coordtmp.ord"
+  # Não aplica para a primeira posição de lâmina no modo==2, porque as coordenadas já foram definidas anteriormente
+  if (modo==1 || (iw!=1 && modo==2)){
 	
     # Search for first image
     lista=mktemp("lista")
     files("c*.fits", > lista)
     flist3=lista
-    lixo1=fscan(flist3, imagem)
-    delete(lista, ver-, >& "dev$null")
-
-    fileexists=no
-    fileexists=access("coord_"//root//"_"//suffix//".ord")
-
-    if (fileexists==yes) {
-
-      # There exists a coordinate list from a previous run.
-      print("# Using coordinate file from a previous run...")
-      delete(temp2, ver-, >& "dev$null")
-
-      copy("coord_"//root//"_"//suffix//".ord","coordtmp.ord", ver-, >& "dev$null")
-
-      uselast=yes
-      #temp1="coordtmp.ord"
-#     print("GRANDE TESTE: INTERA, havia coordenadas de uma rodada anterior")
-
-    } else {
-
-      print("# Using coordinate file from the previous WP position...")
-      uselast=yes
-      #temp1="coordtmp.ord"
-
-#     print("GRANDE TESTE: INTERA, usando coordenada da posição de lâmina anterior")
-
-      # BEDNARSKI 01-08-2011: Se for a primeira posição de lâmina, não usa a coordenada anterior, desde que o modo seja 1, pois se 2, há sim coordenada anterior, obtida no if (modo==2) que inicia na linha aaaa
-      if (i == iw && modo == 1) {
-
-        #temp1="a"
-        uselast=no
-      }
+    if(fscan(flist3, imagem) == EOF){
+      print("ERROR: all images at position "//iw//" was saturated!")
+      error(1,1)
     }
+    delete(lista, ver-, >& "dev$null")
+    temp0=imagem
 
+    # Em qualquer caso tempcoord terá seu valor reatribuído aqui, exceto se for primeira posição de lâmina e modo==2 (condição do if a umas 10 linhas acima)
+    # 1) CASO INTERA==YES
+    if(intera) {
 
-    bb=no
-
-    while (bb == no) {
-      if (uselast == no) {
-
-        #delete (temp1, ver-, >& "dev$null")
-
-        display(image=imagem,frame=1)
-#        sleep 1
-
-        print("")
-        print("Running DAOEDIT ...")
-        print("")
-        print("1. put the cursor on the bottom image of a object")
-        print("2. type <r> to see the profile (in a tek window) and check the position")
-        print("3. type <a> to save the position")
-        print("4. put the cursor on the top image of a object and repeat 2 and 3")
-        print("5. repeat 1 to 4 for another object, if you wish")
-        print("6. type <q> to quit of daoedit")
-        print("")
-        beep
-
-
-        temp1=mktemp("daoedit")
-        daoedit(image=imagem, icommands="", gcommands="",> temp1)
-        type(temp1)
-				   
-        delete (temp2, ver-, >& "dev$null")
-        rename(files=temp1,newname=temp2,field="all")
+      if (access("coord_"//root//"_"//suffix//".ord")) {
+        print("# Using coordinate file from a previous run...")
+        tempcoord="coord_"//root//"_"//suffix//".ord"
+        print("# Displaying first image of the series ...")
+        display(image=temp0, frame=1)
+        tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
+        sleep 0.9
 
       } else {
-        uselast=no
+        # Tries to use the previous coords
+        if (iw-1 < 100) suffix3="0"//iw-1
+        if (iw-1 < 10) suffix3="00"//iw-1
+        if (access("coord_"//root//"_"//suffix3//".ord")){
+          print("# Using coordinate file from the previous WP position...")
+          tempcoord="coord_"//root//"_"//suffix3//".ord"
+          uselast=yes
+        } else {
+          tempcoord="coordtmp.ord"
+          uselast=no
+        }
 
-        # Bednarski, 14ago16: adicionei abaixo para atualizar coordenadas no modo interativo
-        comm=mktemp("icommands")
-        print(icom, " ", temp2, " ", comm, > "roda")
-        !source roda
+        bb=no
+        while (bb == no) {
 
-        centerpars.cbox=20.
-        daoedit(image=imagem, icommands=comm, gcommands="", > temp2)
-        type(temp2)
-        delete(comm, ver-, >& "dev$null")
-        display(image=imagem,frame=1)
+          if (uselast == no) {
+            display(image=temp0,frame=1)
+    #        sleep 1
+            print("")
+            print("Running DAOEDIT ...")
+            print("")
+            print("1. put the cursor on the bottom image of a object")
+            print("2. type <r> to see the profile (in a tek window) and check the position")
+            print("3. type <a> to save the position")
+            print("4. put the cursor on the top image of a object and repeat 2 and 3")
+            print("5. repeat 1 to 4 for another object, if you wish")
+            print("6. type <q> to quit of daoedit")
+            print("")
+            beep
 
-#     print("GRANDE TESTE: Intera, atualizando coordenadas")
+            tempcoord=mktemp("daoedit")
+            daoedit(image=temp0, icommands="", gcommands="",> tempcoord)
+            type(tempcoord)
+               
+          } else {
+            uselast=no
+
+            # Bednarski, 14ago16: adicionei abaixo para atualizar coordenadas no modo interativo
+            comm=mktemp("icommands")
+            print(icom, " ", tempcoord, " ", comm, > "roda")
+            !source roda
+
+            centerpars.cbox=20.
+            tempcoord=mktemp("daoedit")
+            daoedit(image=temp0, icommands=comm, gcommands="", > tempcoord)
+            type(tempcoord)
+            delete(comm, ver-, >& "dev$null")
+            display(image=temp0,frame=1)
+
+          }
+
+          print("")
+          print("Running TVMARK ...")
+          print("")
+
+          tvmark(1,tempcoord,label=no,number=yes,radii=10,mark="circle",color=204)
+               
+          print("")
+          print("# Is it correct (yes|no)?")
+          aa=scan(bb)
+        }
       }
 
-      print("")
-      print("Running TVMARK ...")
-      print("")
-
-      tvmark(1,temp2,label=no,number=yes,radii=10,mark="circle",color=204)
-				   
-      print("")
-      print("# Is it correct (yes|no)?")
-      aa=scan(bb)
     }
 
+    # 1) CASO INTERA==NO
+    else {
+      print("# Using coordinate file from the previous WP position...")
+      tempcoord="coordtmp.ord"
 
-    # Update the files coord_
-    delete("coord_"//root//"_"//suffix//".ord", ver-, >& "dev$null")
-    copy(temp2,"coord_"//root//"_"//suffix//".ord",ver-, >& "dev$null")
+      # AQUI É IMPORTANTE: reatribui as novas coordenadas no arquivo tempcoord (no caso modo==2)
+      # Bednarski, 14ago16: adicionei abaixo para atualizar coordenadas no modo interativo
+      comm=mktemp("icommands")
+      print(icom, " ", tempcoord, " ", comm, > "roda")
+      !source roda
 
+      centerpars.cbox=20.
+      tempcoord=mktemp("daoedit")
+      daoedit(image=temp0, icommands=comm, gcommands="", > tempcoord)
+      type(tempcoord)
+      delete(comm, ver-, >& "dev$null")
+      print("# Displaying first image of the series ...")
+      display(image=temp0, frame=1)
+      tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
+      sleep 0.9
+    }
+    
+  
+    # Joga as coordenadas no arquivo coordtmp.ord e seta tempcoord="coordtmp.ord" para TODOS os casos
+    # Copia coordtmp.ord para o arquivo definitivo de coordenadas "coord_"//root//"_"//suffix//".ord" no caso intera==yes
+    if(intera){
+      if (tempcoord!="coord_"//root//"_"//suffix//".ord"){
+        delete("coord_"//root//"_"//suffix//".ord", ver-, >& "dev$null")
+        rename(tempcoord, "coord_"//root//"_"//suffix//".ord")
+      }
+      delete("coordtmp.ord", ver-, >& "dev$null")
+      copy("coord_"//root//"_"//suffix//".ord", "coordtmp.ord")
+    }
 
-    # BEDNARSKI 01-08-2011: tempcoord para o caso de intera == yes
-    tempcoord="coord_"//root//"_"//suffix//".ord"
+    if (!intera && tempcoord!="coordtmp.ord"){
+      delete("coordtmp.ord", ver-, >& "dev$null")
+      rename(tempcoord, "coordtmp.ord")
+    }
+    tempcoord="coordtmp.ord"
 
   }
 #
-# FIM do if (intera)
+# FIM do if (modo==1 || (iw!=1 && modo==2))
 #
-
 
 # BEDNARSKI 01-08-2011: No lugar do else para o "if (intera)", acrescentei novos ifs para deixar adequado.
-
+######################
+# PROCEDURE
+# FOR modo==1
   # In case modo == 1
   if (modo == 1) {
-    PRINT ("CCDRAP IKON PROGRAMAR")
-    STOP
-		
+    print("ERROR: CCDRAP IKON PROGRAMAR!")
+    error(1,1)
+  
   # BEDNARSKI 01-08-2011: No caso de intera == no, executa os procedimentos abaixo (que têm de ser programados corretamente ainda, para o modo 1!)
-    if (intera == no) {
-
-      # Search for first image
-      lista=mktemp("lista")
-      files("c*.fits", > lista)
-      flist3=lista
-      lixo1=fscan(flist3, imagem)
-      delete(lista, ver-, >& "dev$null")
-
-      fileexists=access("coord_"//root//"_"//suffix//".ord")
-
-      if (fileexists==yes) {
-
-        print("# Using coordinate file from a previous run...")
-        delete ("coordtmp.ord", ver-, >& "dev$null")
-        copy("coord_"//root//"_"//suffix//".ord","coordtmp.ord", ver-, >& "dev$null")
-
-        display(image=imagem,frame=1)
-
-        print("")
-        print("Running TVMARK ...")
-        print("")
-
-        tvmark(1,"coordtmp.ord",label=no,number=yes,radii=10,mark="circle",color=204)
-
-      } else {	
-
-        print "# Automatically finding star coordinates with daofind..."
-        delete("TEMP_1.txt", ver-, >& "dev$null")
-
-        imstatistics(images=imagem, fields="max", lower=INDEF, upper=INDEF, 
-                     binwidth=0, format=no, >> "TEMP_1.txt")
-
-        flist1="TEMP_1.txt"
-        lixo1=fscan(flist1, maxdata)
-        delete("TEMP_1.txt", ver-, >& "dev$null")
-        datapars.datamin=maxdata*1./10.	
-        delete ("coordtmp.ord", ver-, >& "dev$null")
-
-        daofind (image=imagem, output="coordtmp.ord", verify="no")
-      }
-    }
-#
-# FIM do if (intera == no)
-#		
-		
-
-    # Continues until the end of procedures to modo == 1
 
     print "# Aligning images..."
-    temp2="coordtmp.ord"
     imdel (images="shc*.fits",go_ahead=yes, verify=no, >& "dev$null")
-
 
     if (access("shifts")) {
 
@@ -745,22 +709,19 @@ while (fscan(flist2, arqim) != EOF) {
       files("c*.fits", > fname4)    
 
       print ("# Using 'shifts' file present in the folder...")
-      imalign(input="@"//fname4,reference=imagem,
-              coords=temp2, output="sh//@"//fname4, shifts="shifts",
+      imalign(input="@"//fname4,reference=temp0,
+              coords=tempcoord, output="sh//@"//fname4, shifts="shifts",
               boxsize=boxsize, bigbox=bigbox, trimimages=no, shiftimages=yes)
     } else {
 
       fname4=mktemp("lista")
       files("c*.fits", > fname4)  
-      imalign(input="@"//fname4, reference=imagem,
-              coords=temp2, output="sh//@"//fname4, shifts="",
+      imalign(input="@"//fname4, reference=temp0,
+              coords=tempcoord, output="sh//@"//fname4, shifts="",
               boxsize=boxsize, bigbox=bigbox, trimimages=no, shiftimages=yes)
     }
 
     delete(fname4, ver-, >& "dev$null")
-
-    if (intera==no) 
-      delete ("coordtmp.ord", ver-, >& "dev$null")
 
 
     print "# Summing images..."
@@ -777,8 +738,11 @@ while (fscan(flist2, arqim) != EOF) {
     #sleep 1		
     #tvmark(1,temp5,label=no,number=yes,radii=10,mark="circle",color=204)
 
-  } else {
-
+  }
+######################
+# PROCEDURE
+# FOR modo==2
+  else {
 
     # Mode 2, runs phot and calls ccdrap.e to combine the *mag.1 into a .dat file
 
@@ -810,13 +774,14 @@ while (fscan(flist2, arqim) != EOF) {
     delete ("*.mag.*", ver-, >& "dev$null")
 
     unlearn datapars
+    unlearn phot
+    unlearn centerpars
+    unlearn tstat
+    
     datapars.readnoise=readnoise*ganho*sqrt(nframes)
     datapars.epadu=ganho
     datapars.fwhm=fwhm_mean
     datapars.sigma=skysigma_mean
-
-    unlearn phot
-    unlearn centerpars
     centerpars.calgori="centroid"
     centerpars.cbox=fwhm_mean*2.5
     unlearn fitskypars
@@ -825,23 +790,13 @@ while (fscan(flist2, arqim) != EOF) {
     fitskypars.dannulus=dannulus
     unlearn photpars
     photpars.apertures=apertures
-
-
-    # Create list of input star images in a temporary file
-    # Determine the number of stars
-    unlearn tstat
-
-
-    # BEDNARSKI 01-08-2011: Atualizado abaixo (funciona para os dois modos)
     tstat(tempcoord,1, >& "dev$null")
-    #tstat(temp2//".ord",1, >& "dev$null")
-
+    
     nstars=tstat.nrows/2
     temp4=mktemp("lista")
     files ("ccdp_*.fits", > temp4)
     flist1=temp4
     flist3=tempshift
-
 
     # Search the file to find the line that starts with "#C"
     ver=yes
@@ -889,36 +844,54 @@ while (fscan(flist2, arqim) != EOF) {
         actcount[2*k] = count
         delete (temp6, ver-, >& "dev$null")
 
-        print("ORD: basecount[k] "//basecount[2*k-1])
-        print("ORD: actcount[k] "//actcount[2*k-1])
-        print("EXORD: basecount[k] "//basecount[2*k])
-        print("EXORD: actcount[k] "//actcount[2*k])
+# BEDNARSKI: print test for coordinates missing
+#        print("ORD: basecount[k] "//basecount[2*k-1])
+#        print("ORD: actcount[k] "//actcount[2*k-1])
+#        print("EXORD: basecount[k] "//basecount[2*k])
+#        print("EXORD: actcount[k] "//actcount[2*k])
 
         # Calculating if the coordinates were missed
-        # 1) Verify if a same coordinate was used for more than once time
+        # 1) Verify if a same coordinate was used more than once time
         if(xx[2*k-1] - xx[2*k] < 5  &&  xx[2*k-1] - xx[2*k] > -5 &&
-           yy[2*k-1] - yy[2*k] < 5  &&  yy[2*k-1] - yy[2*k] > -5)
+           yy[2*k-1] - yy[2*k] < 5  &&  yy[2*k-1] - yy[2*k] > -5){
+          print("position ORD: ("//xx[2*k-1]//","//yy[2*k-1]//")")
+          print("position EXORD: ("//xx[2*k]//","//yy[2*k]//")")
           print("delta*************************Missing position!")
+          print("\nERROR: STAR POSITION MISSING?")
+#          error(1,1)
+        }
         for (u=1; u <= 2*k-2; u += 1) {
           if(xx[2*k-1] - xx[u] < 5  &&  xx[2*k-1] - xx[u] > -5 &&
-             yy[2*k] - yy[u] < 5  &&  yy[2*k] - yy[u] > -5)
+             yy[2*k] - yy[u] < 5  &&  yy[2*k] - yy[u] > -5){
+            print("position star A: ("//xx[2*k-1]//","//yy[2*k-1]//")")
+            print("position star B: ("//xx[2*k]//","//yy[2*k]//")")
             print("delta*************************Missing position!")
+            print("\nERROR: STAR POSITION MISSING?")
+#            error(1,1)
+            }
         }
         # 2) Verify if the pixel value is small, probably value of sky
-        if (real(basecount[2*k-1]) > 10*real(actcount[2*k-1]) || real(basecount[2*k]) > 10*real(actcount[2*k]))
+        if (real(basecount[2*k-1]) > 10*real(actcount[2*k-1]) || real(basecount[2*k]) > 10*real(actcount[2*k])){
+          print("ORD: basecount[k] "//basecount[2*k-1])
+          print("ORD: actcount[k] "//actcount[2*k-1])
+          print("EXORD: basecount[k] "//basecount[2*k])
+          print("EXORD: actcount[k] "//actcount[2*k])
           print("count*************************Missing position!")
+          print("\nERROR: STAR POSITION MISSING?")
+#          error(1,1)
+        }
 
         k += 1
       }
 
-      if (j == 1 && intera == no) {
-
-        print("# Displaying first image of the series ...")
-        display(image=imagem, frame=1)
-        tvmark(1, temp5, label=no, number=yes, radii=10, mark="circle", color=204)
+#      if (j == 1 && intera == no) {
+#
+#        print("# Displaying first image of the series ...")
+#        display(image=imagem, frame=1)
+#        tvmark(1, temp5, label=no, number=yes, radii=10, mark="circle", color=204)
 # Descomentar depois
-        sleep 0.9
-      }
+#        sleep 0.9
+#      }
 
 			
       # Jump the space			
@@ -973,6 +946,9 @@ while (fscan(flist2, arqim) != EOF) {
   # Delect ccdproc images
   if (eraseccdproc) 	
     imdel (images="ccdp_*.fits",go_ahead=yes, verify=no, >& "dev$null")
+
+  if(modo==2 && iw == 1)
+    delete (temp0, ver-, >& "dev$null")
 
 }
 #
