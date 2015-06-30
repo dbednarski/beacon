@@ -56,8 +56,7 @@ string imagem, fileord, fileout, filetemp, imname, filecounts
 string zeroi, flati
 string arq, arqim
 string biasseci=""
-string trimseci=""
-string darki=""
+string trimseci, darki
 
 real   xxx, yyy, xcomp, ycomp, deltax, deltay
 real   sky_mean, skysigma_mean, fwhm_mean, count, actcount[100], basecount[100]
@@ -93,6 +92,8 @@ zeroi=zero
 #flati="../"//flat
 flati=flat
 trimseci=trimsec
+darki=dark
+#biasseci=biassec
 
 temp1=""
 
@@ -110,6 +111,12 @@ if( !access(icom) && coordref ) {
 
 #delete("daoedit* imalign* tmpcont* counts* coordtmp.ord dev", ver-, >& "dev$null")
 !rm -f lista* daoedit* imalign* icommands* coordtmp.ord dev counts* tmpcounts* &> /dev/null
+
+if (intera && access("coord_"//root//".ord"))
+  delete("coord_"//root//".ord", ver-, >& "dev$null")
+if (!intera)
+  delete("coord_"//root//"_0*.ord", ver-, >& "dev$null")
+
 
 
 if (modo == 2) {
@@ -559,8 +566,9 @@ while (fscan(flist2, arqim) != EOF) {
     lista=mktemp("lista")
     files("c*.fits", > lista)
     flist3=lista
-    if(fscan(flist3, imagem) == EOF){
-      print("ERROR: all images at position "//iw//" was saturated!")
+    lixo1 = fscan(flist3, imagem)
+    if(fscan(flist3, lixo1) == EOF){
+      print("\n# ERROR: all images at position "//iw//" was saturated!")
       error(1,1)
     }
     delete(lista, ver-, >& "dev$null")
@@ -854,30 +862,32 @@ while (fscan(flist2, arqim) != EOF) {
         # 1) Verify if a same coordinate was used more than once time
         if(xx[2*k-1] - xx[2*k] < 5  &&  xx[2*k-1] - xx[2*k] > -5 &&
            yy[2*k-1] - yy[2*k] < 5  &&  yy[2*k-1] - yy[2*k] > -5){
+#          print("delta*************************Missing position!")
+          print("\n# ERROR: STAR POSITION MISSING!")
           print("position ORD: ("//xx[2*k-1]//","//yy[2*k-1]//")")
           print("position EXORD: ("//xx[2*k]//","//yy[2*k]//")")
-          print("delta*************************Missing position!")
-          print("\nERROR: STAR POSITION MISSING?")
-#          error(1,1)
+          print("Change ccdrap parameter \'intera==yes\' and run again!\n")
+          error(1,1)
         }
         for (u=1; u <= 2*k-2; u += 1) {
           if(xx[2*k-1] - xx[u] < 5  &&  xx[2*k-1] - xx[u] > -5 &&
              yy[2*k] - yy[u] < 5  &&  yy[2*k] - yy[u] > -5){
+#            print("delta*************************Missing position!")
+            print("\n# ERROR: STAR POSITION MISSING!")
             print("position star A: ("//xx[2*k-1]//","//yy[2*k-1]//")")
             print("position star B: ("//xx[2*k]//","//yy[2*k]//")")
-            print("delta*************************Missing position!")
-            print("\nERROR: STAR POSITION MISSING?")
-#            error(1,1)
+            print("Change ccdrap parameter \'intera==yes\' and run again!\n")
+            error(1,1)
             }
         }
         # 2) Verify if the pixel value is small, probably value of sky
         if (real(basecount[2*k-1]) > 10*real(actcount[2*k-1]) || real(basecount[2*k]) > 10*real(actcount[2*k])){
+          print("\n# STAR POSITION MISSING?")
           print("ORD: basecount[k] "//basecount[2*k-1])
           print("ORD: actcount[k] "//actcount[2*k-1])
           print("EXORD: basecount[k] "//basecount[2*k])
           print("EXORD: actcount[k] "//actcount[2*k])
-          print("count*************************Missing position!")
-          print("\nERROR: STAR POSITION MISSING?")
+#          print("count*************************Missing position!")
 #          error(1,1)
         }
 
@@ -927,7 +937,6 @@ while (fscan(flist2, arqim) != EOF) {
     txdump(text="*.mag.1",
            fiel="image,msky,nsky,rapert[1-"//str(nap)//"],sum[1-"//str(nap)//"],area[1-"//str(nap)//"]",
            expr=yes,>> temp4//"")
-
 
     # Run pccdrap_e
     delete ("roda", ver-, >& "dev$null")

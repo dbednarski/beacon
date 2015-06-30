@@ -28,8 +28,7 @@ ccdproc.overscan = no
 ccdproc.trim = no
 ccdproc.flatcor = no
 ccdproc.darkcor = no
-#ccdproc.trim=yes
-#ccdproc.trimsec="[226:325,201:300]"
+
 
 delete(read3Dfits.prefix//"*", ver-, >& "dev$null")
 

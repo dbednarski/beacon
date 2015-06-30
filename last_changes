@@ -12,6 +12,7 @@
   1.8. mai2015: Acrescentei umas mudanças sobre os arquivos de coordenadas caso existentes durante uma nova rodada (pra funcionar um pouco melhor se intera==yes)
   1.9. jun2015: Agora identifica as coordenadas da n posições de lâmina através das coordenadas da posição imediatamente anterior. Até então era usado como referência apenas as coordenadas da primeira posição quando intera==no. Com isso, espera-se deixar de perder as coordenadas da estrela ao longo das posições de lâmina nos casos de mau acompanhamento.
   1.10 jun2015: Consertei para excluir arquivos espúrios de rodadas anteriores no início do código.
+  1.11 jun2015: Corrigi um bug: o caminho para o dark e o valor de darksec não estavam sendo guardados em darki e darkseci!
   
 
 2. reduce.cl (Bednarski)

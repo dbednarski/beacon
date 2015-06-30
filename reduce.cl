@@ -10,7 +10,7 @@ bool  dov1=yes    {prompt="Do the reduction without calibrations?"}
 bool  dov2=yes    {prompt="Do the reduction using the calib. images?"}
 bool  head=yes    {prompt="(obsolete) Use gain and readnoise values from headers?"}
 bool  usecoords=yes    {prompt="Use previous daofind coordinates to next filters?"}
-bool  dograph=yes    {prompt="Generate all .png graphs?"}
+bool  dograph=no    {prompt="Generate all .png graphs?"}
 real ganho="INDEF"   {prompt="(obsolete) CCD gain to be used if head=no (e/adu)"}
 real readno="INDEF"  {prompt="(obsolete) ReadNoise (ADUs) to be used if head=no (adu)"}
 int	reject=0     {prompt="Reject images with counts larger than this value (0 to use value from ccdrap)"}
@@ -48,13 +48,13 @@ if(pccdpath != "" && pccdpath != " " && pccdpath != "  "){
   ccdrap.icom=pccdpath//"icom.sh"
 
   if (!access(pccdgen.fileexe) || !access(ccdrap.fileexe)){
-    print("ERROR: file pccd2000gen05.mac.e and/or ccdrap_e.e not found on ", pccdpath,"\n\nIf this directory really exists, be sure that you have putted a \"/\" at the end of \"pccdpath\" parameter")
+    print("# ERROR: file pccd2000gen05.mac.e and/or ccdrap_e.e not found on ", pccdpath,"\n\nIf this directory really exists, be sure that you have putted a \"/\" at the end of \"pccdpath\" parameter")
     error(1,1)
   }
 }
 
 if( !access(ccdrap.icom) && usecoords ) {
-  print("ERROR: script ", ccdrap.icom, ", used for \"usecoords=yes\", not found!\nVerify and try again.")
+  print("# ERROR: script ", ccdrap.icom, ", used for \"usecoords=yes\", not found!\nVerify and try again.")
   error(1,1)
 }
 
@@ -154,10 +154,9 @@ for (i = 1; i < 6; i=i+1) {
     nreject = 22000
 
   if(nreject == 0){
-    print("FILTER "//filter[i]//": WARNING! Be sure about the reject value.")
+    print("\n# FILTER "//filter[i]//": WARNING! Be sure about the used reject value, because CCD was not identified automatically.")
     test = 1
-    sleep(1)
-    print("FILTER "//filter[i]//": WARNING! Be sure about the reject value.", >> verbose)
+    print("FILTER "//filter[i]//": WARNING! Be sure about the used reject value, because CCD was not identified automatically.", >> verbose)
   }
   else
     if( ccdrap.reject - nreject > 1000 || ccdrap.reject - nreject < -1000){
@@ -178,8 +177,7 @@ for (i = 1; i < 6; i=i+1) {
       ccdrap.readnoise=real(imgets.value)/ccdrap.ganho
     }
     else {
-      print("FILTER "//filter[i]//": \"GAIN\" and \"RDNOISE\" don't exist in headers.")
-      sleep(1)
+      print("\n# FILTER "//filter[i]//": WARNING! \"GAIN\" and \"RDNOISE\" don't exist in headers.")
       print("FILTER "//filter[i]//": NOT REDUCED! Fits haven't fields \"GAIN\" and \"RDNOISE\" in headers. Pass manually these values through the reduce parameters.", >> verbose)
       next
     }
@@ -242,13 +240,13 @@ for (i = 1; i < 6; i=i+1) {
   }
 
   coordfile="coord_"//inname//".ord"
-
+  print("")
 }
 
 
 # Bednarski: generate .png modulation graphs:
 if(dograph) {
-  print("\n# Generating graphs...\n")
+  print("\n# Generating graphs...")
   print(graphpol, " ", suf, > "roda")
   !source roda
   delete("roda", ver-, >& "dev$null")
@@ -261,12 +259,12 @@ if(test == 1)
 print("", >> verbose)
     
 if(access(verbose)){
-  print("\n\n================")
+  print("\n================")
   cat(verbose)
   delete(verbose, ver-, >& "dev$null")
 }
 else
-  print("Nothing done.")
+  print("# Nothing done.")
 
 
 fstruct = ""
