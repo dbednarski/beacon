@@ -1,5 +1,5 @@
 # Package script task for the BEACON package
-# jun/15
+# jul/15
 
 # load necessary packages
 

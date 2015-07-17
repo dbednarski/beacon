@@ -1,4 +1,17 @@
 
+
+
+ver 2.1
+
+reduce.cl: verifica se os ganhos (pre-amp) no cabeçalho das séries são iguais aos do cabeçalho das calibrações que serão utilizadas.
+
+ccdrap.cl: - verifica se a primeira posição de lâmina da série é de fato a L0.
+           - acrescentei parâmetro "frame" sobre em qual frame mostrar as imagens no DS9. Isso é útil para reduções em paralelo (com dois terminais cl abertos simultaneamente, usando dois frames diferentes do mesmo DS9).
+
+
+
+ver 2.0
+
 1. ccdrap.cl (Moser e Bednarski)
 
   1.1. jun2014: O IRAF 2.16 não aceita mais * como indicador para output de rotinas como referência ao * no parâmetro de entrada. Implementei as modificações do Moser sobre meu ccdrap.cl de substituição dos * por listas de arquivos (@lista).

@@ -1,4 +1,5 @@
 #
+#
 # Ver. Agosto de 2014
 #
 # Para IRAF 3.0
@@ -24,13 +25,14 @@ string  flat=""            {prompt="Flat field images"}
 string  coord=""           {prompt="Reference coordinate file"}
 real    readnoise=2.19     {prompt="CCD readnoise (adu)"}
 real    ganho=3.7          {prompt="CCD gain (e/adu)"}
+int     frame=1            {prompt="Frame number to open on DS9"}
 int     nap=10             {prompt="phot: number of apertures (maximum 10)"}
 string  apertures="5:14:1" {prompt="phot: List of aperture radii in pixels"}
 real    annulus=30.        {prompt="phot: Inner radius of sky annulus in scale units"}
 real    dannulus=10.       {prompt="phot: Width of sky annulus in scale units"}
 real    boxsize=7          {prompt="Imalign: Size of the small centering box"}
 real    bigbox=11          {prompt="Imalign: Size of the big centering box"}
-int	    reject=63000       {prompt="Reject images with pixel values larger than this value"}
+int     reject=63000       {prompt="Reject images with pixel values larger than this value"}
 bool    stack1st=no        {prompt="Attempt to automatically stack 1st WP position?"}
 string  fileexe="/iraf/iraf-2.16.1/extern/beacon/pccd/ccdrap_e.e"  {prompt="CCDRAP executable file"}
 string  icom="/iraf/iraf-2.16.1/extern/beacon/pccd/icom.sh"  {prompt="Script for icommands of daoedit"}
@@ -51,7 +53,7 @@ string temp0, temp1, temp2, temp3, temp4, temp5, temp6, tempshift, aa, linedata,
 string fname, fname2, fname3, fname4
 struct line1, line2
 string diret, raiz, lista
-string lixo1
+string lixo1, lamina
 string imagem, fileord, fileout, filetemp, imname, filecounts
 string zeroi, flati
 string arq, arqim
@@ -134,6 +136,14 @@ if (modo == 2) {
 
   workingimage=substr(imagem,1,(strlen(imagem)-5))
 
+  imgets(workingimage, "LAMINA")
+  lamina = imgets.value
+#  print("lamina "//lamina)
+  if(lamina != "L0" && lamina != "0"){
+    print("ERROR: the first WP position for "//root//"_*.fits is not the position L0!\nVerify and try again.")
+    error(1,1)
+  }
+  
   print ("# Registering images in "//workingimage)
   print ("# Extracting 2D Fits files from 3D File")
 
@@ -279,9 +289,9 @@ if (modo == 2) {
 
     print"# Running DISPLAY ...")
     print("")
-    display(image=temp0,frame=1)
+    display(image=temp0,frame=frame)
 
-    tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
+    tvmark(frame, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
     # Descomentar depois
 #    sleep 1
 
@@ -313,9 +323,9 @@ if (modo == 2) {
 
     print"# Running DISPLAY ...")
     print("")
-    display(image=temp0,frame=1)
+    display(image=temp0,frame=frame)
 
-    tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
+    tvmark(frame, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
     print("")
     print("# Is it correct (yes|no)?")
     aa=scan(bb)
@@ -333,7 +343,7 @@ if (modo == 2) {
 
     print"# Running DISPLAY ...")
     print("")
-    display(image=temp0,frame=1)
+    display(image=temp0,frame=frame)
 #    sleep 1
 
     print("")
@@ -355,7 +365,7 @@ if (modo == 2) {
     print("Running TVMARK ...")
     print("")
 		
-    tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
+    tvmark(frame, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
 		
     print("")
     print("# Is it correct (yes|no)?")
@@ -582,8 +592,8 @@ while (fscan(flist2, arqim) != EOF) {
         print("# Using coordinate file from a previous run...")
         tempcoord="coord_"//root//"_"//suffix//".ord"
         print("# Displaying first image of the series ...")
-        display(image=temp0, frame=1)
-        tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
+        display(image=temp0, frame=frame)
+        tvmark(frame, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
         sleep 0.9
 
       } else {
@@ -603,7 +613,7 @@ while (fscan(flist2, arqim) != EOF) {
         while (bb == no) {
 
           if (uselast == no) {
-            display(image=temp0,frame=1)
+            display(image=temp0,frame=frame)
     #        sleep 1
             print("")
             print("Running DAOEDIT ...")
@@ -634,7 +644,7 @@ while (fscan(flist2, arqim) != EOF) {
             daoedit(image=temp0, icommands=comm, gcommands="", > tempcoord)
             type(tempcoord)
             delete(comm, ver-, >& "dev$null")
-            display(image=temp0,frame=1)
+            display(image=temp0,frame=frame)
 
           }
 
@@ -642,7 +652,7 @@ while (fscan(flist2, arqim) != EOF) {
           print("Running TVMARK ...")
           print("")
 
-          tvmark(1,tempcoord,label=no,number=yes,radii=10,mark="circle",color=204)
+          tvmark(frame,tempcoord,label=no,number=yes,radii=10,mark="circle",color=204)
                
           print("")
           print("# Is it correct (yes|no)?")
@@ -669,8 +679,8 @@ while (fscan(flist2, arqim) != EOF) {
       type(tempcoord)
       delete(comm, ver-, >& "dev$null")
       print("# Displaying first image of the series ...")
-      display(image=temp0, frame=1)
-      tvmark(1, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
+      display(image=temp0, frame=frame)
+      tvmark(frame, tempcoord, label=no, number=yes, radii=10, mark="circle", color=204)
       sleep 0.9
     }
     
@@ -742,9 +752,9 @@ while (fscan(flist2, arqim) != EOF) {
     imdel (images="shc*.fits",go_ahead=yes, verify=no, >& "dev$null")
 
 		
-    #display(image="../sum"//raiz//version//".fits",frame=1)
+    #display(image="../sum"//raiz//version//".fits",frame=frame)
     #sleep 1		
-    #tvmark(1,temp5,label=no,number=yes,radii=10,mark="circle",color=204)
+    #tvmark(frame,temp5,label=no,number=yes,radii=10,mark="circle",color=204)
 
   }
 ######################
@@ -864,32 +874,39 @@ while (fscan(flist2, arqim) != EOF) {
            yy[2*k-1] - yy[2*k] < 5  &&  yy[2*k-1] - yy[2*k] > -5){
 #          print("delta*************************Missing position!")
           print("\n# ERROR: STAR POSITION MISSING!")
-          print("position ORD: ("//xx[2*k-1]//","//yy[2*k-1]//")")
-          print("position EXORD: ("//xx[2*k]//","//yy[2*k]//")")
+          print("Coordinates ORD (star #"//k//"): x="//xx[2*k-1]//", y="//yy[2*k-1])
+          print("Coordinates EXORD (star #"//k//"): x="//xx[2*k]//", y="//yy[2*k])
           print("Change ccdrap parameter \'intera==yes\' and run again!\n")
           error(1,1)
         }
         for (u=1; u <= 2*k-2; u += 1) {
-          if(xx[2*k-1] - xx[u] < 5  &&  xx[2*k-1] - xx[u] > -5 &&
-             yy[2*k] - yy[u] < 5  &&  yy[2*k] - yy[u] > -5){
-#            print("delta*************************Missing position!")
+          if( xx[2*k-1] - xx[u] < 5  &&  xx[2*k-1] - xx[u] > -5 &&
+              yy[2*k-1] - yy[u] < 5  &&  yy[2*k-1] - yy[u] > -5 ){
             print("\n# ERROR: STAR POSITION MISSING!")
-            print("position star A: ("//xx[2*k-1]//","//yy[2*k-1]//")")
-            print("position star B: ("//xx[2*k]//","//yy[2*k]//")")
+            print("Coordinates star #"//nint(real(u)/2)//"aaaa: x="//xx[u]//", y="//yy[u])
+            print("Coordinates star #"//k//": x="//xx[2*k-1]//", y="//yy[2*k-1])
+            print("Change ccdrap parameter \'intera==yes\' and run again!\n")
+            error(1,1)
+          }
+          if( xx[2*k] - xx[u] < 5  &&  xx[2*k] - xx[u] > -5 &&
+              yy[2*k] - yy[u] < 5  &&  yy[2*k] - yy[u] > -5 ){
+            print("\n# ERROR: STAR POSITION MISSING!")
+            print("Coordinates star #"//nint(real(u)/2)//": x="//xx[u]//", y="//yy[u])
+            print("Coordinates star #"//k//": x="//xx[2*k]//", y="//yy[2*k])
             print("Change ccdrap parameter \'intera==yes\' and run again!\n")
             error(1,1)
             }
         }
-        # 2) Verify if the pixel value is small, probably value of sky
-        if (real(basecount[2*k-1]) > 10*real(actcount[2*k-1]) || real(basecount[2*k]) > 10*real(actcount[2*k])){
-          print("\n# STAR POSITION MISSING?")
-          print("ORD: basecount[k] "//basecount[2*k-1])
-          print("ORD: actcount[k] "//actcount[2*k-1])
-          print("EXORD: basecount[k] "//basecount[2*k])
-          print("EXORD: actcount[k] "//actcount[2*k])
+#        # 2) Verify if the pixel value is small, probably value of sky
+#        if (real(basecount[2*k-1]) > 10*real(actcount[2*k-1]) || real(basecount[2*k]) > 10*real(actcount[2*k])){
+#          print("\n# STAR POSITION MISSING?")
+#          print("ORD: basecount[k] "//basecount[2*k-1])
+#          print("ORD: actcount[k] "//actcount[2*k-1])
+#          print("EXORD: basecount[k] "//basecount[2*k])
+#          print("EXORD: actcount[k] "//actcount[2*k])
 #          print("count*************************Missing position!")
 #          error(1,1)
-        }
+#        }
 
         k += 1
       }
@@ -897,8 +914,8 @@ while (fscan(flist2, arqim) != EOF) {
 #      if (j == 1 && intera == no) {
 #
 #        print("# Displaying first image of the series ...")
-#        display(image=imagem, frame=1)
-#        tvmark(1, temp5, label=no, number=yes, radii=10, mark="circle", color=204)
+#        display(image=imagem, frame=frame)
+#        tvmark(frame, temp5, label=no, number=yes, radii=10, mark="circle", color=204)
 # Descomentar depois
 #        sleep 0.9
 #      }
