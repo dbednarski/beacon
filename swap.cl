@@ -11,10 +11,11 @@ real          tol=0.5   {prompt="Exptime error tolerance (%)"}
 struct *flist1
 struct *flist2
 struct line1
+struct line
 
 begin
 
-string filei,temp,lista,line,lixo
+string filei,temp,lista,lixo
 string imagem1,imagem2
 real	expt,hora,min,seg,exptimage1,exptimage2,dt
 real tmin,tmax
@@ -27,7 +28,7 @@ del (files=filei//"0000",go_ahead=yes, verify=no, >& "dev$null")
 
 imdel (images=filei//".fits",go_ahead=yes, verify=no, >& "dev$null")
 
-print ("/iraf/extern/beacon/suape"," \"",filei,"\"", >> "roda")
+print ("/iraf/iraf-2.16.1/extern/beacon/suape"," \"",filei,"\"", >> "roda")
 #$
 
 !source roda
@@ -70,7 +71,7 @@ flist2 = lista
 lixo = fscan(flist1,line)
 lixo = fscan(flist2,imagem1)
 
-line1  = substr(line,1,2)
+line1 = substr(line,1,2)
 lixo = fscan(line1,hora)
 
 line1  = substr(line,4,5)

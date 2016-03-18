@@ -15,6 +15,7 @@ bool    trim = yes 	{prompt="Trim the images?"}
 bool    texpcor = yes   {prompt="Check the *real* integration time?"}
 real    tol = 2.        {prompt="Exptime error tolerance (%)"}
 bool    headcor = no 	{prompt="Reset exptime values in headers?"}
+string  zeroadr = "" 	{prompt="TEMP for bias. If none, bias is not used"}
 string  trimsec = "301s" {prompt="Trim data section"}
 string  texpimg = "uu.u bb.b vv.v rr.r ii.i" 	{prompt="Real images exptimes (*00.0* to use header value)"}
 struct *flist1
@@ -27,12 +28,13 @@ struct *flist2
 begin
 
 string temp1, temp2, item
-string image, lixo, darkpath, filter[5]
+string image, lixo, darkpath, filter[5], verbose
 real texp, darktime
 int i, n
 # Dummy variable to fix a bug:
 string dark
 
+verbose = mktemp("verb")
 filter[1]="u"
 filter[2]="b"
 filter[3]="v"
@@ -48,22 +50,24 @@ polrap.pout = "00"
 swap.tcheck = texpcor
 swap.tol = tol
 
-print ("WARNING: It is necessary some previous running of calib_301 on calib images!")
-sleep 1
+#!rm -f verb* &> /dev/null
+
+print ("CAUTION: It is necessary some previous running of calib_301 on calib images!\n")
+#sleep 1
 
 # Loop on the filters directories
-for (i = 1; i < 6; i=i+1) {
+for(i = 1; i < 6; i=i+1) {
 
-  if (! access (filter[i]))
+  if(! access(filter[i]))
     next
  
-  chdir (filter[i])
+  chdir(filter[i])
 # para que serve essa linha abaixo?
-  imdel (images="p*.fits", verify=no, >& "dev$null")
+  imdel(images="p*.fits", verify=no, >& "dev$null")
 
 # Obtaining exptime of images
   texp = 0.
-  if (headcor) {
+  if(headcor) {
     item  = substr(texpimg,1+(i-1)*5,5+(i-1)*5)
     lixo = fscan(item,texp)
   }
@@ -73,27 +77,27 @@ for (i = 1; i < 6; i=i+1) {
   files("p*", > temp2)
   flist2 = temp2
   n = 0
-  while (fscan(flist2, item) != EOF)
+  while(fscan(flist2, item) != EOF)
     n = n+1
-  delete (temp2, ver-, >& "dev$null")
+  delete(temp2, ver-, >& "dev$null")
 
 # Case headcor == no or current parameter from texpimg equals zero
-  if (texp == 0) {
+  if(texp == 0) {
 
     chdir(item)
     temp2 = mktemp("templist")
     files("p*", > temp2)
     flist2 = temp2
-    lixo = fscan (flist2, image)
-    delete (temp2, ver-, >& "dev$null")
-    swap (image, tcheck=no)
+    lixo = fscan(flist2, image)
+    delete(temp2, ver-, >& "dev$null")
+    swap(image, tcheck=no)
  
     temp2 = mktemp("tempexp")
     hselect(images=image//".fits", fields="EXPTIME", expr=yes, > temp2)
     flist2 = temp2
-    lixo = fscan (flist2, texp)
-    delete (temp2, ver-, >& "dev$null")
-    imdel (images=image//".fits", verify=no, >& "dev$null")
+    lixo = fscan(flist2, texp)
+    delete(temp2, ver-, >& "dev$null")
+    imdel(images=image//".fits", verify=no, >& "dev$null")
 
     chdir("..")
   }
@@ -104,37 +108,37 @@ for (i = 1; i < 6; i=i+1) {
   ccdrap_301.flatcor = no
   ccdrap_301.dark = ""
   ccdrap_301.flat = ""
-  if (texpcor)
+  if(texpcor)
     ccdrap_301.exptime = texp
 
 # Run ccdrap_301 and polrap
-  ccdrap_301 (version=".1")
+  ccdrap_301(version=".1")
 
-  if (n >= 32) {
-    polrap(n=8)
-    polrap(n=16)
-  }
-  else
+  if(n<=16)
     polrap(n=n)
+  if(n>8)
+    polrap(n=8)
+  if(n>16)
+    polrap(n=16)
 
 # Procedure to .2 version
 
-  if (access("../../dark")) {
+  if(access("../../dark")) {
 
     temp2 = mktemp("../dark_base")
     files("../../dark/"//pre//"*.fits", > temp2)
     flist2 = temp2
 
 # Loop on the dark images to find what to substract of corrent images
-    while (fscan(flist2, darkpath) != EOF){
+    while(fscan(flist2, darkpath) != EOF){
     
       temp1= mktemp("darktemp")
       hselect(images=darkpath, fields="DARKTIME", expr=yes, > temp1)
       flist1 = temp1
-      lixo = fscan (flist1, darktime)
-      delete (temp1, ver-, >& "dev$null")
+      lixo = fscan(flist1, darktime)
+      delete(temp1, ver-, >& "dev$null")
 
-      if (texp == darktime) {
+      if(texp == darktime) {
         ccdrap_301.darkcor = yes
         ccdrap_301.dark = "../"//darkpath
         break
@@ -142,40 +146,52 @@ for (i = 1; i < 6; i=i+1) {
     }
   }
 
-  print("\n"//filter[i]//" filter: Exptime "//texp//"s")
+  print("FILTER "//filter[i]//": identified exptime: "//texp//"s", >> "../"//verbose)
 
-  if (ccdrap_301.darkcor)
-    print(filter[i]//" filter: Using "//darkpath//" dark")
+  if(ccdrap_301.darkcor)
+    print("FILTER "//filter[i]//": dark image used: "//darkpath, >> "../"//verbose)
   else
-    print (filter[i]//" filter: Dark image of "//texp//"s not found. Caution: Dark headers can be wrong in case of no previous running of calib_301.")
+    print("FILTER "//filter[i]//": **WARNING**: dark not used because it was not found for "//texp//"s.\n   Caution: Dark headers can be wrong in case of no previous running of calib_301.", >> "../"//verbose)
 
-  if (access("../../flat/f"//filter[i]//suf//"avg.fits")) {
+  if(access("../../flat/f"//filter[i]//suf//"avg.fits")) {
     ccdrap_301.flatcor = yes
     ccdrap_301.flat="../../../flat/f"//filter[i]//suf//"avg.fits"
-    print(filter[i]//" filter: Using "//ccdrap_301.flat//" flat")
+    print("FILTER "//filter[i]//": flat image used: "//ccdrap_301.flat, >> "../"//verbose)
   }
   else
-    print (filter[i]//" filter: Flat image not found.")
+    print("FILTER "//filter[i]//": **WARNING**: flat image not found.", >> "../"//verbose)
 
-  print ("")
-  sleep 3
+  print("", >> "../"//verbose)
+  print("")
+#  sleep 3
 
 # Run ccdrap_301 and polrap
-  if (ccdrap_301.flatcor || ccdrap_301.darkcor) {
-    ccdrap_301 (version=".2")
-
-    if (n >= 32) {
-      polrap(n=8)
-      polrap(n=16)
-    }
+  if(ccdrap_301.flatcor || ccdrap_301.darkcor) {
+    if(zeroadr=="" || zeroadr==" " || zeroadr=="  ")
+      ccdrap_301(version=".2")
     else
+      ccdrap_301(version=".2",zerocor=yes,zero=zeroadr)
+
+    if(n<=16)
       polrap(n=n)
+    if(n>8)
+      polrap(n=8)
+    if(n>16)
+      polrap(n=16)
   }
 
-  delete (temp2, ver-, >& "dev$null")
-  chdir ("..")
+  delete(temp2, ver-, >& "dev$null")
+  chdir("..")
 
 }
+
+
+if(access(verbose)){
+  print("\n================")
+  cat(verbose)
+  delete(verbose, ver-, >& "dev$null")
+}
+
 
 flist1 = ""
 flist2 = ""

@@ -1,8 +1,7 @@
 #
+# Modificado em 15ago01
 #
-# Ver. Agosto de 2014
-#
-# Para IRAF 3.0
+# Para IRAF 2.16
 #
 
 procedure ccdrap(rootin)
@@ -17,8 +16,9 @@ bool    zerocor=no         {prompt="Apply zero level correction?"}
 bool    darkcor=no         {prompt="Apply dark count correction?"}
 bool    flatcor=no         {prompt="Apply flat field correction?"}
 bool    coordref=no        {prompt="Use a reference coordinate file?"}
-string  biassec=""         {prompt=" Overscan strip image section"}
-string  trimsec=""         {prompt=" Trim data section"}
+bool    ver1stwp=no        {prompt="Verify if first image is the WP position L0?"}
+string  biassec=""         {prompt="Overscan strip image section"}
+string  trimsec=""         {prompt="Trim data section"}
 string  zero=""            {prompt="Zero level calibration image"}
 string  dark=""            {prompt="Dark Count calibration image"}
 string  flat=""            {prompt="Flat field images"}
@@ -140,8 +140,11 @@ if (modo == 2) {
   lamina = imgets.value
 #  print("lamina "//lamina)
   if(lamina != "L0" && lamina != "0"){
-    print("ERROR: the first WP position for "//root//"_*.fits is not the position L0!\nVerify and try again.")
-    error(1,1)
+    if(ver1stwp){
+      print("ERROR: the first WP position for "//root//"_*.fits is not the position L0!\n   Verify through imhead task and try again.\n   If the first position was performed at L0 but the headers are wrong, you can set ver1stwp=no.")
+      error(1,1)
+    } else
+      print("WARNING: the first WP position for "//root//"_*.fits is not the position L0!")
   }
   
   print ("# Registering images in "//workingimage)
@@ -574,7 +577,7 @@ while (fscan(flist2, arqim) != EOF) {
 	
     # Search for first image
     lista=mktemp("lista")
-    files("c*.fits", > lista)
+    files("ccdp_*.fits", > lista)
     flist3=lista
     lixo1 = fscan(flist3, imagem)
     if(fscan(flist3, lixo1) == EOF){
@@ -724,7 +727,7 @@ while (fscan(flist2, arqim) != EOF) {
     if (access("shifts")) {
 
       fname4=mktemp("lista")
-      files("c*.fits", > fname4)    
+      files("ccdp_*.fits", > fname4)    
 
       print ("# Using 'shifts' file present in the folder...")
       imalign(input="@"//fname4,reference=temp0,
@@ -733,7 +736,7 @@ while (fscan(flist2, arqim) != EOF) {
     } else {
 
       fname4=mktemp("lista")
-      files("c*.fits", > fname4)  
+      files("ccdp_*.fits", > fname4)  
       imalign(input="@"//fname4, reference=temp0,
               coords=tempcoord, output="sh//@"//fname4, shifts="",
               boxsize=boxsize, bigbox=bigbox, trimimages=no, shiftimages=yes)

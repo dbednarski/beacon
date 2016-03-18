@@ -1,7 +1,5 @@
 # Package script task for the BEACON package
-# jul/15
 
-# load necessary packages
 
 print ('loading necessary packages ...')
 

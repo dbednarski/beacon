@@ -1,16 +1,50 @@
+Pacote IRAF Beacon
+Log das modificações das tarefas
+
+
+ver 2.1.3, Bednarski
+
+1. ccdrap_301.cl: adicionado o mesmo parâmetro 'frame' que fora adicionado já para o ccdrap.cl na versão 2.1.0.
 
 
 
-ver 2.1
 
-reduce.cl: verifica se os ganhos (pre-amp) no cabeçalho das séries são iguais aos do cabeçalho das calibrações que serão utilizadas.
+ver 2.1.2, Bednarski
 
-ccdrap.cl: - verifica se a primeira posição de lâmina da série é de fato a L0.
-           - acrescentei parâmetro "frame" sobre em qual frame mostrar as imagens no DS9. Isso é útil para reduções em paralelo (com dois terminais cl abertos simultaneamente, usando dois frames diferentes do mesmo DS9).
+1. ccdrap.cl: adicionado o parâmetro boleano "ver1stwp", que pergunta ao usuário se ele quer verificar se a primeira posição de lâmina está registrada como L0 no cabeçalho.
+
+2. reduce.cl:  2.1. adicionado o mesmo parâmetro "ver1stwp" para setar diretamente esse parâmetro no ccdrap.
+               2.2. agora verifica se o parâmetro reject é MENOR que o limite pré-estabelecido através das configurações dos headers.
 
 
 
-ver 2.0
+
+ver 2.1.1, Bednarski
+
+1. suape: consertado, com o parâmetro "convert=ascii" retirado, pois estava causando bugs.
+
+2. calib_301.cl: adicionei "add=yes" na chamado do hedit para editar o parâmetro DARKTIME, pois se este campo já não existia, não estava sendo criado automaticamente!
+
+3. ccdrap_301.cl: vários bugs corrigidos.
+
+4. reduce_301.cl: agrupa 8 posições de lâmina também, como a tarefa "reduce.cl".
+
+5. jdrap.cl: swap chamado com tcheck=no para evitar bugs.
+
+
+
+
+ver 2.1.0, Bednarski
+
+1. reduce.cl: verifica se os ganhos (pre-amp) no cabeçalho das séries são iguais aos do cabeçalho das calibrações que serão utilizadas.
+
+2. ccdrap.cl: 2.1. verifica se a primeira posição de lâmina da série é de fato a L0.
+              2.2. acrescentei parâmetro "frame" sobre em qual frame mostrar as imagens no DS9. Isso é útil para reduções em paralelo (com dois terminais cl abertos simultaneamente, usando dois frames diferentes do mesmo DS9).
+
+
+
+
+ver 2.0, Bednarski e Moser
 
 1. ccdrap.cl (Moser e Bednarski)
 

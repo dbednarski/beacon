@@ -1,21 +1,22 @@
 #
-#Ver 2.3, 15jul04
+# Modificado em 15ago01
 #
 procedure reduce(pref,suf)
 
-string pref="tpyx" {prompt="Prefix of filenames (WITHOUT '_')"}
-string suf="_f"   {prompt="Suffix of filenames (same of calib. images)"}
-string calib="../calib"   {prompt="Path to calib directory (WITHOUT last '/')"}
-bool  dov1=yes    {prompt="Do the reduction without calibrations?"}
-bool  dov2=yes    {prompt="Do the reduction using the calib. images?"}
-bool  head=yes    {prompt="Use gain and readnoise values from headers?"}
-bool  usecoords=yes    {prompt="Use previous daofind coordinates to next filters?"}
-bool  dograph=no    {prompt="Generate all .png graphs?"}
-real ganho="INDEF"   {prompt="CCD gain to be used if head=no (e/adu)"}
-real readno="INDEF"  {prompt="ReadNoise (ADUs) to be used if head=no (adu)"}
-int	reject=0     {prompt="Reject images with counts larger than this value (0 to use value from ccdrap)"}
-string pccdpath="/iraf/iraf-2.16.1/extern/beacon/pccd/" {prompt="Path to .e pccd files (blank to use values from ccdrap/pccdgen)"}
-string graphpol="/iraf/iraf-2.16.1/extern/beacon/grafpol.py"   {prompt="Path to the grafpol.py code"}
+string pref="tpyx"         {prompt="Prefix of filenames (WITHOUT '_')"}
+string suf="_f"            {prompt="Suffix of filenames (same of calib. images)"}
+string calib="../calib"    {prompt="Path to calib directory (WITHOUT last '/')"}
+bool   dov1=yes            {prompt="Do the reduction without calibrations?"}
+bool   dov2=yes            {prompt="Do the reduction using the calib. images?"}
+bool   head=yes            {prompt="Use gain and readnoise values from headers?"}
+bool   ver1stwp=yes        {prompt="Verify if first image is the WP position L0?"}
+bool   usecoords=yes       {prompt="Use previous daofind coordinates to next filters?"}
+bool   dograph=no          {prompt="Generate all .png graphs?"}
+real   ganho="INDEF"       {prompt="CCD gain to be used if head=no (e/adu)"}
+real   readno="INDEF"      {prompt="ReadNoise (ADUs) to be used if head=no (adu)"}
+int    reject=0            {prompt="Reject images with counts larger than this value (0 to use value from ccdrap)"}
+string pccdpath="/iraf/iraf-2.16.1/extern/beacon/pccd/"       {prompt="Path to .e pccd files (blank to use values from ccdrap/pccdgen)"}
+string graphpol="/iraf/iraf-2.16.1/extern/beacon/grafpol.py"  {prompt="Path to the grafpol.py code"}
 
 struct *fstruct
 
@@ -43,6 +44,8 @@ pccdgen.wavetyp="half"
 pccdgen.calc="c"
 pccdgen.retar=180.
 
+ccdrap.ver1stwp=ver1stwp
+
 if(pccdpath != "" && pccdpath != " " && pccdpath != "  "){
   pccdgen.fileexe=pccdpath//"pccd2000gen05.mac.e"
   ccdrap.fileexe=pccdpath//"ccdrap_e.e"
@@ -66,9 +69,9 @@ if(!head) {
 }
 
 # Setting reject
-if(reject != 0){
+if(reject != 0)
   ccdrap.reject=reject
-}
+
 
 # Set zero parameters of ccdrap
 ccdrap.zero = calib//"/avg_bias"//suf//".fits"
@@ -133,7 +136,7 @@ for (i = 1; i < 6; i=i+1) {
   bin = imgets.value
   imgets(fname, "SERNO")
   serno = imgets.value
-  if(serno == "4335"){
+  if(serno == "4335" || serno == "4269"){
     ccd = "iXon"
     imgets(fname, "OUTPTAMP")
     outamp = imgets.value
@@ -146,26 +149,29 @@ for (i = 1; i < 6; i=i+1) {
     ccd = "iKon 9867"
     outamp = "Conventional"
   }
-  if(serno != "9867" && serno != "10127" && serno != "4335"){
+  if(serno != "9867" && serno != "10127" && serno != "4335" && serno != "4269"){
     ccd = "Unknown (Serial No. "//serno//")"
     outamp = "Unknown"
   }
   nreject = 0
   if(bin == "2" && outamp == "Conventional")
-    nreject = 62000
+    nreject = 63000
   if(bin == "2" && outamp == "Electron Multiplying")
-    nreject = 22000
+    nreject = 30000
 
   if(nreject == 0){
     print("\n# FILTER "//filter[i]//": WARNING! Be sure about the used reject value, because CCD was not identified automatically.")
     test = 1
     print("FILTER "//filter[i]//": WARNING! Be sure about the reject value.", >> verbose)
   }
-  else
-    if( ccdrap.reject - nreject > 1000 || ccdrap.reject - nreject < -1000){
-      print("\nABORTED! Reject value (saturation level) should be "//nreject//", not the assigned value of "//ccdrap.reject//" for CCD "//ccd//", bin "//bin//", "//outamp//".\nChange \'reject\' parameter and run again.", >> verbose)
-      break
-    }
+  else if( ccdrap.reject > nreject ){
+    print("\nABORTED! Reject value (saturation level) should be less than "//nreject//" for CCD "//ccd//", bin "//bin//", "//outamp//". (Assigned value: "//ccdrap.reject//")\nChange \'reject\' parameter and run again.", >> verbose)
+    break
+  }
+  else if(nreject == 63000 && ccdrap.reject < 30000){
+    print("\nABORTED! Reject value (saturation level) should be less than "//nreject//", but close of this value for CCD "//ccd//", bin "//bin//", "//outamp//" and the assigned value is too low ("//ccdrap.reject//"), compatible with the value used for Electron Multiplying output amplifier.\nCheck and run again.", >> verbose)
+    break
+  }
 
   # Receive gain and readnoise from headers
   if(head) {

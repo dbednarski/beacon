@@ -8,8 +8,8 @@
 #
 # Bednarski, 14ago16
 
-sed 's/\ \+/\ /g' "$1" | cut -s -d' ' -f2-3 > tmp
-sed -i '1d' tmp
-sed 's/$/ 0 a/' tmp > "$2"
+sed 's/\ \+/\ /g' "$1" | cut -s -d' ' -f2-3 > tmpfile
+sed -i '1d' tmpfile
+sed 's/$/ 0 a/' tmpfile > "$2"
 echo "q" >> "$2"
-rm tmp
+rm tmpfile

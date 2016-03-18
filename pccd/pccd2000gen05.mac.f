@@ -10,6 +10,18 @@ c       Max. number of apertures               =  10
 c
 c       ano(# stars, pos. waveplate, apertures)
 c
+c
+c       Bednarski note (Dec 2015):
+c
+c       WARNING: out values are consistent with a waveplate
+c       rotating in counter-clockwise direction. For clockwise
+c       direction, do the substitutions:
+c
+c             U  ->  -U
+c         theta  ->  -theta
+c
+c
+c
 	implicit real*8 (a-h, o-z)
 	dimension ano(2000,16,10), ane(2000,16,10), skyo(2000,16), skye(2000,16)
 	dimension ap(10), areao(2000,16,10), areae(2000,16,10), a(4000)
@@ -494,11 +506,15 @@ c
 	if (u.lt.0. .and. q.gt.0) then
 		theta = theta + 360.
 	end if
+
 	theta = theta/2.
+        
 	if (theta.ge.180.) then
 		theta = theta -180
 	end if
+
 	theta = 180 - theta + deltatheta
+
 	if (theta.ge.180.) then
 		theta = theta - 180
 	end if

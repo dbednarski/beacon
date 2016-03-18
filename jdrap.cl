@@ -73,7 +73,7 @@ int i, nw
 		del (files="pp*,hp*",go_ahead=yes, verify=no, >& "dev$null")
 #    	del (files="p0*,h0*",go_ahead=yes, verify=no, >& "dev$null")
 
-		swap(files=imagem)
+		swap(files=imagem,tcheck=no)
 		
 		print ("# Calculating JD and writing it to file jd0"//raiz)
 # Set the observatory name

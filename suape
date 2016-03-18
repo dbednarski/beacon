@@ -3,7 +3,9 @@
 # Script para inverter bytes em um FITS com 2880 bytes de header
 #
 foreach imag ($1)
-     dd if=$imag of=h$imag bs=80 count=36 conv=ascii >& /dev/null
+     # Para o IRAF 2.16, tive de tirar a conversão para ASCII para funcionar. Bednarski, 2015.
+     dd if=$imag of=h$imag bs=80 count=36 >& /dev/null
+#     dd if=$imag of=h$imag bs=80 count=36 conv=ascii >& /dev/null
      dd if=$imag of=p$imag bs=80 skip=36 conv=swab >& /dev/null
      cat h$imag p$imag > $imag.fits
      rm h$imag p$imag
