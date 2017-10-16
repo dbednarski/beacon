@@ -842,6 +842,7 @@ while (fscan(flist2, arqim) != EOF) {
         # Reading ordinary beam
         lixo1=fscan(flist3,line1)
         linedata=fscan(line1,imname,xxx,lixo1,yyy,lixo1,lixo1)
+#        print("in1 "//imname)
         print (xxx,yyy," 1 a", >>temp5)
         xx[2*k-1]=nint(xxx)
         yy[2*k-1]=nint(yyy)
@@ -855,6 +856,7 @@ while (fscan(flist2, arqim) != EOF) {
         # Reading extraordinary beam
         lixo1=fscan(flist3,line1)
         linedata=fscan(line1,imname,xxx,lixo1,yyy,lixo1,lixo1)
+#        print("in2 "//imname)
         print (xxx,yyy," 1 a", >>temp5)
         temp6=mktemp("tmpcont")
         xx[2*k]=nint(xxx)
