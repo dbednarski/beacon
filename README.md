@@ -3,12 +3,6 @@ BEACON PACKAGE v.2.1.4
 
 IRAF tools for reducing polarimetry and spectroscopy taken at OPD.
 
-Beacon Group page: http://beacon.iag.usp.br/
-
-Reduction tutorial: http://www.astro.iag.usp.br/~bednarski/obs/ixon-tutorial.pdf
-
-General reduction guide: http://www.astro.iag.usp.br/~bednarski/obs/roteiro_reducao.txt
-
 
 Installing Beacon Package
 ------
@@ -37,9 +31,12 @@ task beacon.pkg  =  beacon$beacon.cl
 
 4. **Open IRAF** (i.e., an ecl terminal) and compile the _.f_ Fortran codes below.
 
-Note: If you are using a 64-bits Debian-based distribution, you can skip this step.
-It is because there are already such binary files in this repository,
-which should work in you computer.
+|-----------------------------------------------------------------------------|
+|Note:                                                                        |
+|If you are using a 64-bits Debian-based distribution, you can skip this step.|
+|It is because there are already such binary files in this repository,        |
+|which should work in you computer.                                           |
+|-----------------------------------------------------------------------------|
 
 ```
 ecl> cd PATH_TO_BEACON_PACKAGE/pccd
@@ -52,6 +49,15 @@ ecl> fc ccdrap_e.f -o ccdrap_e.e
 Change log
 ------
 See [./changes.log](changes.log) file. unfortunately, almost the content is in portuguese. 
+
+
+References
+-----
+Beacon Group page: http://beacon.iag.usp.br/
+
+Reduction tutorial: http://www.astro.iag.usp.br/~bednarski/obs/ixon-tutorial.pdf
+
+General reduction guide: http://www.astro.iag.usp.br/~bednarski/obs/roteiro_reducao.txt
 
 
 Contact
