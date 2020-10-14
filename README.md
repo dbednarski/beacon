@@ -13,15 +13,15 @@ General reduction guide: http://www.astro.iag.usp.br/~bednarski/obs/roteiro_redu
 Installing Beacon Package
 ------
 
-1. First, install the required package `bc`. For instance, in Debian-based
+1. First, install the required packages `bc` and `git`. For instance, in Debian-based
 distributions, type
 
 ```
-$ sudo apt-get install bc
+$ sudo apt-get install bc git
 ```
 
 2. Now, assuming that you are within your IRAF installation directory,
-go to `extern/` subdirectory to install the Beacon package and type
+go to `extern/` subdirectory to install properly the Beacon package by typing
 
 ```
 $ git clone https://github.com/dbednarski/beacon.git
@@ -35,10 +35,11 @@ reset beacon     =  iraf$extern/beacon
 task beacon.pkg  =  beacon$beacon.cl
 ```
 
-4. Open IRAF and compile the .f Fortran codes below.
-PS: if you are using a 64-bits Debian-based distribution, maybe you can
-skip this step because there are binary files already, which should work
-in you computer.
+4. **Open IRAF** (i.e., an ecl terminal) and compile the _.f_ Fortran codes below.
+
+_**PS:** if you are using a 64-bits Debian-based distribution, you can skip this step.
+It is because there are already such binary files in this repository,
+which should work in you computer._
 
 ```
 ecl> cd PATH_TO_BEACON_PACKAGE/pccd
