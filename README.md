@@ -1,7 +1,7 @@
 BEACON PACKAGE v.2.1.4
 ======================
 
-IRAF tools for polarimetry and spectroscopy taken at OPD.
+IRAF tools for reducing polarimetry and spectroscopy taken at OPD.
 
 Beacon Group page: http://beacon.iag.usp.br/
 
