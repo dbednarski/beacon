@@ -37,9 +37,9 @@ task beacon.pkg  =  beacon$beacon.cl
 
 4. **Open IRAF** (i.e., an ecl terminal) and compile the _.f_ Fortran codes below.
 
-_**PS:** if you are using a 64-bits Debian-based distribution, you can skip this step.
+Note: If you are using a 64-bits Debian-based distribution, you can skip this step.
 It is because there are already such binary files in this repository,
-which should work in you computer._
+which should work in you computer.
 
 ```
 ecl> cd PATH_TO_BEACON_PACKAGE/pccd
