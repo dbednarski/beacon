@@ -36,6 +36,7 @@ int     reject=63000       {prompt="Reject images with pixel values larger than 
 bool    stack1st=no        {prompt="Attempt to automatically stack 1st WP position?"}
 string  fileexe="/iraf/iraf-2.16.1/extern/beacon/pccd/ccdrap_e.e"  {prompt="CCDRAP executable file"}
 string  icom="/iraf/iraf-2.16.1/extern/beacon/pccd/icom.sh"  {prompt="Script for icommands of daoedit"}
+string  meancol="/iraf/iraf-2.16.1/extern/beacon/pccd/meancol.sh"  {prompt="meancol.sh script for daoedit"}
 
 struct *flist1
 struct *flist2
@@ -49,7 +50,7 @@ begin
 string workingimage, root
 string suffix, suffix2, suffix3
 
-string temp0, temp1, temp2, temp3, temp4, temp5, temp6, tempshift, aa, linedata, tempcoord, comm
+string temp0, temp1, temp2, temp3, temp4, temp5, temp6, tempshift, aa, linedata, tempcoord, comm, colfile
 string fname, fname2, fname3, fname4
 struct line1, line2
 string diret, raiz, lista
@@ -60,7 +61,7 @@ string arq, arqim
 string biasseci=""
 string trimseci, darki
 
-real   xxx, yyy, xcomp, ycomp, deltax, deltay
+real   xxx, yyy, xcomp, ycomp, deltax, deltay, mean
 real   sky_mean, skysigma_mean, fwhm_mean, count, actcount[100], basecount[100]
 real   maxdata
 real   JD[1000]
@@ -110,9 +111,15 @@ if( !access(icom) && coordref ) {
   error(1,1)
 }
 
+if( !access(meancol) ) {
+  print("ERROR: script ", meancol, ", used to compute the mean sky and fwhm values, not found!\nVerify and try again.")
+  error(1,1)
+}
 
-#delete("daoedit* imalign* tmpcont* counts* coordtmp.ord dev", ver-, >& "dev$null")
-!rm -f lista* daoedit* imalign* icommands* coordtmp.ord dev counts* tmpcounts* &> /dev/null
+
+
+#delete("lista* daoedit* imalign* icommands* coordtmp.ord dev counts* tmpcont* tmpvar* meancol* roda txdump*")#, ver-, >& "dev$null")
+!rm lista* daoedit* imalign* icommands* coordtmp.ord dev counts* tmpcont* tmpvar* meancol* roda txdump* &> /dev/null
 
 if (intera && access("coord_"//root//".ord"))
   delete("coord_"//root//".ord", ver-, >& "dev$null")
@@ -384,7 +391,7 @@ if (modo == 2) {
 #  unlearn filecalc
 #  print("#  XCENTER   YCENTER       SKY  SKYSIGMA      FWHM    COUNTS       MAG", > temp2)
 #  filecalc.format="%10.2f%10.2f%10.1f%10.2f%10.2f%10.1f%10.2f"
-#  filecalc(tempcoord,"$1;$2;$3;$4;$5", calctyp="double", >> temp2)
+#  filecalc(tempcoord,"$1;$2;$3;$4;$5;$6", calctyp="double", >> temp2)
 
   if(!intera){
     if (tempcoord!="coord_"//root//".ord")
@@ -399,6 +406,7 @@ if (modo == 2) {
   }
   tempcoord="coordtmp.ord"
 
+
   # BEDNARSKI: 2015, Added. Get pixel values of selected coordinates to prevent object missing in the further steps.
   type(tempcoord)
   flist2=tempcoord
@@ -406,11 +414,14 @@ if (modo == 2) {
   lixo1 = fscan(flist2, line1)
   lixo1 = fscan(flist2, line1)
   k=1
+  print("")
+
   while(fscan(flist2, line1) != EOF) {
+
 #    print(line1)
     temp6=mktemp("tmpconta")
     linedata=fscan(line1, xxx,yyy,lixo1,lixo1)
-    print(xxx,yyy)
+    print("(x, y) = "//xxx//", "//yyy)
     listpixels(images=temp0//"["//nint(xxx)//":"//nint(xxx)//","//nint(yyy)//":"//nint(yyy)//"]", > temp6)
     # Saving the value inside basecount[k] variable
     flist4=temp6
@@ -425,19 +436,43 @@ if (modo == 2) {
   print("")
   print("")
 
-  unlearn tstat
-  tstat(tempcoord,3)
-  sky_mean=tstat.mean
-  tstat(tempcoord,4)
-  skysigma_mean=tstat.mean
-  tstat(tempcoord,5)
-  fwhm_mean=tstat.mean
+  # Bednarski, 2020/09/30: now this computation is done by meancol.sh script. tstat does not anymore!
+
+  # unlearn tstat
+  # tstat(tempcoord,3)
+  # sky_mean=tstat.mean
+  # tstat(tempcoord,4)
+  # skysigma_mean=tstat.mean
+  # tstat(tempcoord,5)
+  # fwhm_mean=tstat.mean
+
+
+  colfile=mktemp("meancol")
+  flist2=colfile
+  print(meancol, " ", tempcoord, " ", colfile, > "roda")
+  !source roda
+
+  if(!access(colfile)){
+    print("# ERROR: "//tempcoord//" probably is a void file.")
+    error(1,1)
+  }
+
+  lixo1=fscan(flist2, mean)
+  sky_mean=mean
+  lixo1=fscan(flist2, mean)
+  skysigma_mean=mean
+  lixo1=fscan(flist2, mean)
+  fwhm_mean=mean
+  delete(colfile, ver-, >& "dev$null")
+  delete("roda", ver-, >& "dev$null")
 
   print("")
   print("Mean values")
   print("sky      : ",sky_mean)
   print("skysigma : ",skysigma_mean)
   print("fwhm     : ",fwhm_mean)	
+
+
 
 }
 
@@ -1112,11 +1147,11 @@ print("#  reject    : ", reject, >> "ccdraplog")
 print("#  stack1st  : ", stack1st, >> "ccdraplog")
 print("#  fileexe   : ", fileexe, >> "ccdraplog")
 print("#  icom      : ", icom, >> "ccdraplog")
-
+print("#  meancol   : ", meancol, >> "ccdraplog")
 
 
 # Running jdrap
-#jdrap(iw=iw,fw=fw,contiguous=contiguous)
+#jdrap(iw=iw,fw=fw,contiguous=contiguous)de
 
 fileout="JD_"//root
 delete (fileout, ver-, >& "dev$null")
