@@ -436,7 +436,7 @@ if (modo == 2) {
   print("")
   print("")
 
-  # Bednarski, 2020/09/30: now this computation is done by meancol.sh script. tstat does not anymore!
+  # Bednarski, 2020/09/30: now this computation is done by meancol.sh script. tstat is a 32-bits based backage.
 
   # unlearn tstat
   # tstat(tempcoord,3)
@@ -463,6 +463,8 @@ if (modo == 2) {
   skysigma_mean=mean
   lixo1=fscan(flist2, mean)
   fwhm_mean=mean
+  lixo1=fscan(flist2, nstars)
+  nstars=nstars/2
   delete(colfile, ver-, >& "dev$null")
   delete("roda", ver-, >& "dev$null")
 
@@ -471,6 +473,7 @@ if (modo == 2) {
   print("sky      : ",sky_mean)
   print("skysigma : ",skysigma_mean)
   print("fwhm     : ",fwhm_mean)	
+  print("N stars  : ",nstars)	
 
 
 
@@ -832,7 +835,7 @@ while (fscan(flist2, arqim) != EOF) {
     unlearn datapars
     unlearn phot
     unlearn centerpars
-    unlearn tstat
+#    unlearn tstat
     
     datapars.readnoise=readnoise*ganho*sqrt(nframes)
     datapars.epadu=ganho
@@ -846,9 +849,9 @@ while (fscan(flist2, arqim) != EOF) {
     fitskypars.dannulus=dannulus
     unlearn photpars
     photpars.apertures=apertures
-    tstat(tempcoord,1, >& "dev$null")
+#    tstat(tempcoord,1, >& "dev$null")
     
-    nstars=tstat.nrows/2
+#    nstars=tstat.nrows/2
     temp4=mktemp("lista")
     files ("ccdp_*.fits", > temp4)
     flist1=temp4

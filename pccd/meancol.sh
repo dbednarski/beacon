@@ -3,7 +3,8 @@
 #
 # Script to compute the mean of columns 3, 4 and 5
 # of output daoedit file (SKY, SKYSIGMA, FWHM).
-# The output file have these 3 values computed, one by line
+# The output file have these 3 values computed, one by line,
+# plus the last line containing the number of valid lines.
 #
 # First parameter ($1) is the input file
 # Second parameter ($2) is the output file
@@ -45,6 +46,7 @@ for col in {3..5}; do
 
 done
 
+echo "$n" >> "$2"
 
 #echo \("$sum" 0\)/"$n" | bc -l > "$3"
 

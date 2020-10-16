@@ -5,11 +5,15 @@ Log das modificações das tarefas
 
 ver 2.1.4 (2020/10), Bednarski
 
-1. ccdrap.cl: 1.1. tables.tstat task does not work anymore. meancol.sh script was developed and integrated within ccdrap to perform the work.
-              1.2. some missing temporary files were added to be deleted at the begining of ccdrap run.
+1. meancol.sh: new script to compute the mean values of columns from coordinate file.
 
-2. reduce.cl: 2.1. set ccdrap.meancol parameter when reduce.pccdpath parameter is set.
+2. ccdrap.cl: 1.1. tables.tstat task does not work anymore. meancol.sh script was developed and integrated within ccdrap to perform the work.
+              1.2. some missing temporary files were added to be deleted at the begining of ccdrap run.
+              1.3. computing number of stars at the begining of the task
+
+3. reduce.cl: 2.1. set ccdrap.meancol parameter when reduce.pccdpath parameter is set.
               2.2. changes in the error message when required files within pccd/ path are not found.
+
 
 
 
