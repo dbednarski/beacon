@@ -1,6 +1,3 @@
-#
-# Modificado em 15ago01
-#
 procedure reduce(pref,suf)
 
 string pref="tpyx"         {prompt="Prefix of filenames (WITHOUT '_')"}
@@ -50,9 +47,10 @@ if(pccdpath != "" && pccdpath != " " && pccdpath != "  "){
   pccdgen.fileexe=pccdpath//"pccd2000gen05.mac.e"
   ccdrap.fileexe=pccdpath//"ccdrap_e.e"
   ccdrap.icom=pccdpath//"icom.sh"
+  ccdrap.meancol=pccdpath//"meancol.sh"
 
-  if (!access(pccdgen.fileexe) || !access(ccdrap.fileexe)){
-    print("# ERROR: file pccd2000gen05.mac.e and/or ccdrap_e.e not found on ", pccdpath,"\n\nIf this directory really exists, be sure that you have putted a \"/\" at the end of \"pccdpath\" parameter")
+  if (!access(pccdgen.fileexe) || !access(ccdrap.fileexe) || !access(ccdrap.meancol)){
+    print("# ERROR: one or more files below were not found in ", pccdpath,":\n\n   - pccd2000gen05.mac.e\n   - ccdrap_e.e\n   - meancol.sh\n\n(Note: be sure that you have putted a \"/\" at the end of \"pccdpath\" parameter.")
     error(1,1)
   }
 }
